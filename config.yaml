@@ -1,0 +1,64 @@
+# Camera settings
+camera:
+  index: 0
+  width: 1280
+  height: 720
+  fps: 30
+
+# Window settings  
+window:
+  width: 1280
+  height: 720
+  title: "AR Holographic Viewer"
+  vsync: true
+  fullscreen: false
+
+# Gesture settings
+gesture:
+  pinch_open_threshold: 0.08
+  pinch_close_threshold: 0.03
+  pinch_min_scale: 0.3
+  pinch_max_scale: 2.0
+  debounce_ms: 200
+  fist_open_cooldown_ms: 500
+
+# Tracking settings
+tracking:
+  hand_detection_confidence: 0.7
+  hand_tracking_confidence: 0.6
+  face_detection_confidence: 0.6
+  smoothing_factor: 0.3
+  one_euro_min_cutoff: 1.0
+  one_euro_beta: 0.007
+
+# Cube settings
+cube:
+  base_size: 0.4
+  rotation_speed: 15.0
+  float_amplitude: 0.02
+  float_speed: 1.5
+  appear_duration: 0.5
+  shrink_duration: 0.3
+
+# Model settings
+model:
+  directory: "assets"
+  rotation_speed: 30.0
+  transition_duration: 0.5
+
+# Visual settings
+visual:
+  glow_color: [0.0, 0.8, 1.0]
+  glow_intensity: 1.5
+  bloom_threshold: 0.6
+  bloom_intensity: 0.8
+  bloom_blur_passes: 5
+  particle_count: 200
+
+# Debug settings
+debug:
+  enabled: false
+  show_fps: true
+  show_landmarks: false
+  log_level: "INFO"
+  log_file: "logs/app.log"
