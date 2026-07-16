@@ -82,15 +82,14 @@ class GestureDetector:
             pip = landmarks[pip_idx]
             mcp = landmarks[mcp_idx]
             
-            # Simple check in normalized image coordinate space:
-            # MediaPipe coordinate systems: y decreases towards the top of the image.
-            # So if tip.y > pip.y, the finger is bent/curled.
-            # If tip.y < pip.y, it is extended upwards.
-            # We also verify absolute distance to wrist.
+            # Rotation-invariant distance-based check:
+            # A finger is curled if the tip is closer to the wrist or the base MCP joint than the PIP joint is.
             dist_tip_wrist = np.linalg.norm(tip - wrist)
             dist_pip_wrist = np.linalg.norm(pip - wrist)
+            dist_tip_mcp = np.linalg.norm(tip - mcp)
+            dist_pip_mcp = np.linalg.norm(pip - mcp)
             
-            if tip[1] > pip[1] or dist_tip_wrist < dist_pip_wrist:
+            if dist_tip_wrist < dist_pip_wrist or dist_tip_mcp < dist_pip_mcp:
                 curled_count += 1
             else:
                 extended_count += 1

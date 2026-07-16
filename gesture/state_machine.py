@@ -71,6 +71,7 @@ class StateMachine:
         
         # Fist state memory for the fist -> open palm sequence detection
         self._was_fist = False
+        self._right_hand_lost_timer = 0.0
         self._fist_open_cooldown_timer = 0.0
         self._elapsed_time = 0.0
         
@@ -121,18 +122,21 @@ class StateMachine:
             self._fist_open_cooldown_timer -= dt
             
         right_hand_open_palm = False
-        if right_hand is not None and self._fist_open_cooldown_timer <= 0.0:
-            pose = gesture_detector.detect_hand_pose(right_hand)
-            if pose.is_fist:
-                self._was_fist = True
-            elif pose.is_open and self._was_fist:
-                # Sequence detected: Fist -> Open palm! Trigger model cycle
-                right_hand_open_palm = True
-                self._was_fist = False
-                self._fist_open_cooldown_timer = self._settings.fist_open_cooldown_ms / 1000.0
+        if right_hand is not None:
+            self._right_hand_lost_timer = 0.0
+            if self._fist_open_cooldown_timer <= 0.0:
+                pose = gesture_detector.detect_hand_pose(right_hand)
+                if pose.is_fist:
+                    self._was_fist = True
+                elif pose.is_open and self._was_fist:
+                    # Sequence detected: Fist -> Open palm! Trigger model cycle
+                    right_hand_open_palm = True
+                    self._was_fist = False
+                    self._fist_open_cooldown_timer = self._settings.fist_open_cooldown_ms / 1000.0
         else:
-            # Reset state memory if tracking is lost or during cooldown
-            if right_hand is None:
+            # Tolerant reset: only clear was_fist memory if tracking is lost for > 1.0 second
+            self._right_hand_lost_timer += dt
+            if self._right_hand_lost_timer > 1.0:
                 self._was_fist = False
 
         # 4. State-specific Updates
@@ -216,11 +220,10 @@ class StateMachine:
                 )
                 self._context.cube_scale = lerp(self._context.cube_scale, target_scale, 0.2)
                 
-            self._context.transition_progress = self._anim.get_value("model_transition", 0.0)
-            
-            # Opacities managed by the Tween completion callback transitions
-            # Scale goes: Shrink -> Grow
-            # We set these within the cycle state animation lifecycle
+            progress = self._anim.get_value("model_transition", 1.0)
+            self._context.transition_progress = progress
+            self._context.model_opacity = progress
+            self._context.model_scale = self._context.cube_scale * progress
 
         elif self._state == AppState.CUBE_SHRINKING:
             # Animation driven shrink scale & opacity

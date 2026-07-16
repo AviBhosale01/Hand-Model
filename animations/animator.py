@@ -85,7 +85,7 @@ class AnimationManager:
                 completed_keys.append(name)
                 
         for name in completed_keys:
-            if name in self._active_tweens:
+            if name in self._active_tweens and self._active_tweens[name].is_complete:
                 del self._active_tweens[name]
 
     def get_value(self, name: str, default: float = 0.0) -> float:
