@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 class MeshData:
     vertices: np.ndarray    # (N, 3) float32 - unit normalized
     normals: np.ndarray     # (N, 3) float32 - normal vectors
+    colors: np.ndarray      # (N, 3) float32 - original RGB colors
     indices: np.ndarray     # (M,) uint32 - flat index buffer
     name: str
     vertex_count: int
@@ -78,17 +79,14 @@ class ModelLoader:
 
         logger.info(f"Loading 3D model: {path}...")
         try:
-            # Load mesh with trimesh. Force single mesh representation.
             scene_or_mesh = trimesh.load(path)
             
-            # If loaded object is a Scene, concatenate all sub-meshes
+            # If loaded object is a Scene, dump and concatenate all sub-meshes with node transforms applied
             if isinstance(scene_or_mesh, trimesh.Scene):
                 if len(scene_or_mesh.geometry) == 0:
                     logger.warning(f"Scene contains no geometry: {path}")
                     return None
-                mesh = trimesh.util.concatenate(
-                    [geom for geom in scene_or_mesh.geometry.values() if isinstance(geom, trimesh.Trimesh)]
-                )
+                mesh = scene_or_mesh.dump(concatenate=True)
             else:
                 mesh = scene_or_mesh
 
@@ -107,12 +105,21 @@ class ModelLoader:
                 mesh.create_vertex_normals()
                 normals = mesh.vertex_normals
 
+            # Extract colors per vertex using trimesh visual conversion
+            try:
+                color_visuals = mesh.visual.to_color()
+                colors = color_visuals.vertex_colors[:, :3].astype(np.float32) / 255.0
+            except Exception as e:
+                logger.warning(f"Could not convert visuals to color: {e}. Using default white color.")
+                colors = np.ones((len(vertices), 3), dtype=np.float32)
+
             # Normalize to unit cube centered at origin
             norm_vertices, scale, offset = normalize_mesh_vertices(vertices)
             
             mesh_data = MeshData(
                 vertices=norm_vertices.astype(np.float32),
                 normals=normals.astype(np.float32),
+                colors=colors.astype(np.float32),
                 indices=indices.astype(np.uint32),
                 name=os.path.basename(path),
                 vertex_count=len(norm_vertices),
@@ -139,12 +146,17 @@ class ModelLoader:
         indices = mesh.faces.flatten()
         normals = mesh.vertex_normals
         
+        # Generate default cyan color for each vertex
+        colors = np.zeros((len(vertices), 3), dtype=np.float32)
+        colors[:, :] = [0.0, 0.8, 1.0] # default cyan
+        
         # Already normalized center-wise, but run the utility to be safe
         norm_vertices, _, _ = normalize_mesh_vertices(vertices)
         
         return MeshData(
             vertices=norm_vertices.astype(np.float32),
             normals=normals.astype(np.float32),
+            colors=colors.astype(np.float32),
             indices=indices.astype(np.uint32),
             name="Default Holographic Sphere",
             vertex_count=len(norm_vertices),

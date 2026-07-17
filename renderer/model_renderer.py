@@ -43,9 +43,10 @@ from models.loader import MeshData
 
 logger = logging.getLogger(__name__)
 
-# Stride for interleaved vertex data: position(3) + normal(3) = 6 floats = 24 bytes
-_VERTEX_STRIDE = 6 * 4  # 24 bytes
+# Stride for interleaved vertex data: position(3) + normal(3) + color(3) = 9 floats = 36 bytes
+_VERTEX_STRIDE = 9 * 4
 _NORMAL_OFFSET = 3 * 4   # 12 bytes (offset to the normal component)
+_COLOR_OFFSET = 6 * 4    # 24 bytes (offset to the color component)
 
 
 class ModelRenderer:
@@ -106,11 +107,12 @@ class ModelRenderer:
         self._index_count = mesh.index_count
 
         # ── Interleave vertex data ────────────────────────────────────────
-        # Resulting shape: (N, 6) — [px, py, pz, nx, ny, nz]
+        # Resulting shape: (N, 9) — [px, py, pz, nx, ny, nz, cx, cy, cz]
         try:
-            interleaved = np.empty((mesh.vertex_count, 6), dtype=np.float32)
+            interleaved = np.empty((mesh.vertex_count, 9), dtype=np.float32)
             interleaved[:, 0:3] = mesh.vertices[:mesh.vertex_count]
             interleaved[:, 3:6] = mesh.normals[:mesh.vertex_count]
+            interleaved[:, 6:9] = mesh.colors[:mesh.vertex_count]
         except Exception:
             logger.exception("Failed to interleave vertex data for mesh '%s'", mesh.name)
             raise
@@ -123,7 +125,7 @@ class ModelRenderer:
         self._vbo = create_vbo(interleaved.ravel(), usage=GL_STATIC_DRAW)
         glBindBuffer(GL_ARRAY_BUFFER, self._vbo)
 
-        # Attribute 0: position (vec3), stride = 24, offset = 0
+        # Attribute 0: position (vec3), stride = 36, offset = 0
         glEnableVertexAttribArray(0)
         glVertexAttribPointer(
             0, 3, GL_FLOAT, False,
@@ -131,12 +133,20 @@ class ModelRenderer:
             None,
         )
 
-        # Attribute 1: normal (vec3), stride = 24, offset = 12
+        # Attribute 1: normal (vec3), stride = 36, offset = 12
         glEnableVertexAttribArray(1)
         glVertexAttribPointer(
             1, 3, GL_FLOAT, False,
             _VERTEX_STRIDE,
             gl_ctypes.c_void_p(_NORMAL_OFFSET),
+        )
+
+        # Attribute 2: color (vec3), stride = 36, offset = 24
+        glEnableVertexAttribArray(2)
+        glVertexAttribPointer(
+            2, 3, GL_FLOAT, False,
+            _VERTEX_STRIDE,
+            gl_ctypes.c_void_p(_COLOR_OFFSET),
         )
 
         # ── Create EBO ────────────────────────────────────────────────────
