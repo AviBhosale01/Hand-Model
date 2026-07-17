@@ -59,6 +59,6 @@ visual:
 debug:
   enabled: false
   show_fps: true
-  show_landmarks: false
+  show_landmarks: true
   log_level: "INFO"
   log_file: "logs/app.log"

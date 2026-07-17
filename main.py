@@ -69,6 +69,7 @@ class ARHologramApp:
         elif key == glfw.KEY_D:
             logger.info("Toggling HUD overlay display...")
             self.scene_renderer.toggle_debug()
+            self.settings.show_landmarks = not self.settings.show_landmarks
             
         elif key == glfw.KEY_F11:
             logger.info("Toggling fullscreen display...")
@@ -155,7 +156,7 @@ class ARHologramApp:
             frame_bgr = self.camera.get_frame()
             frame_rgb = self.camera.get_frame_rgb()
             
-            if frame_rgb is None or frame_bgr is None:
+            if frame_rgb is None or frame_bgr is None or frame_rgb.size == 0 or frame_bgr.size == 0:
                 # Wait for camera feed to initialize
                 time.sleep(0.005)
                 continue
@@ -183,11 +184,13 @@ class ARHologramApp:
                 # We project it in 3D world space inside the renderer
                 head_ndc = face.center
             
+            # Record model index before updates to detect cycling changes in callbacks
+            prev_model_idx = self.state_machine.context.model_index
+
             # Update Tweens/Animations
             self.anim_manager.update(dt)
             
             # Update Finite State Machine
-            prev_model_idx = self.state_machine.context.model_index
             self.state_machine.update(
                 dt=dt,
                 left_hand=left_hand,
@@ -201,9 +204,17 @@ class ARHologramApp:
             if self.state_machine.context.model_index != prev_model_idx:
                 self._update_rendered_mesh()
 
+            # Draw tracking overlays if enabled
+            if self.settings.show_landmarks:
+                from tracking.draw_utils import draw_landmarks
+                frame_to_render = frame_rgb.copy()
+                draw_landmarks(frame_to_render, hands, face)
+            else:
+                frame_to_render = frame_rgb
+
             # Render scene
             self.scene_renderer.render(
-                frame_rgb=frame_rgb,
+                frame_rgb=frame_to_render,
                 state=self.state_machine.state,
                 context=self.state_machine.context,
                 timer=self.timer
