@@ -15,10 +15,11 @@ logger = logging.getLogger(__name__)
 class FaceData:
     center: np.ndarray  # (3,) -> x, y in normalized space, z is depth estimate
     bbox: Tuple[float, float, float, float]  # (xmin, ymin, width, height) in normalized space
+    landmarks: np.ndarray  # (478, 3) normalized face landmarks
     confidence: float
 
-FACE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/latest/blaze_face_short_range.tflite"
-FACE_MODEL_PATH = "assets/blaze_face_short_range.tflite"
+FACE_MODEL_URL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+FACE_MODEL_PATH = "assets/face_landmarker.task"
 
 def _ensure_model_exists(url: str, dest_path: str) -> None:
     if os.path.exists(dest_path):
@@ -34,8 +35,8 @@ def _ensure_model_exists(url: str, dest_path: str) -> None:
     logger.info(f"Successfully downloaded {dest_path}")
 
 class FaceTracker:
-    """Wrapper around MediaPipe Tasks Face Detector. Uses the bounding box
-    dimensions to estimate the approximate distance (depth) of the user's face.
+    """Wrapper around MediaPipe Tasks Face Landmarker. Uses 478 face landmarks
+    to calculate precise bounding boxes, centers, and estimated depth.
     Works out-of-the-box on Python 3.12/3.13.
     """
     
@@ -43,58 +44,64 @@ class FaceTracker:
         _ensure_model_exists(FACE_MODEL_URL, FACE_MODEL_PATH)
         
         base_options = python.BaseOptions(model_asset_path=FACE_MODEL_PATH)
-        options = vision.FaceDetectorOptions(
+        options = vision.FaceLandmarkerOptions(
             base_options=base_options,
-            min_detection_confidence=settings.face_detection_confidence,
+            num_faces=1,
+            min_face_detection_confidence=settings.face_detection_confidence,
+            min_face_presence_confidence=settings.face_detection_confidence,
             running_mode=vision.RunningMode.IMAGE
         )
-        self._detector = vision.FaceDetector.create_from_options(options)
+        self._detector = vision.FaceLandmarker.create_from_options(options)
         
         # Reference height of a face in bounding box terms at a standard distance
-        # Used for heuristic depth estimation (inverse relationship)
-        self._ref_face_height = 0.25
+        self._ref_face_height = 0.28
 
     def process(self, frame_rgb: np.ndarray) -> Optional[FaceData]:
-        """Processes an RGB frame and returns FaceData for the primary face detected."""
-        h, w, _ = frame_rgb.shape
+        """Processes an RGB frame and returns FaceData containing mesh landmarks and center coordinates."""
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_rgb)
         result = self._detector.detect(mp_image)
         
-        if not result.detections:
+        if not result.face_landmarks:
             return None
             
-        # Select detection with highest score or first detection
-        primary_detection = result.detections[0]
-        score = primary_detection.categories[0].score if primary_detection.categories else 0.0
+        # Select first detected face landmarks
+        face_landmarks = result.face_landmarks[0]
         
-        # Bounding box is in pixel coordinates
-        pixel_bbox = primary_detection.bounding_box
-        xmin = pixel_bbox.origin_x / w
-        ymin = pixel_bbox.origin_y / h
-        width = pixel_bbox.width / w
-        height = pixel_bbox.height / h
+        # Convert landmarks to numpy array (N, 3)
+        landmarks = np.zeros((len(face_landmarks), 3), dtype=np.float32)
+        for i, lm in enumerate(face_landmarks):
+            landmarks[i] = [lm.x, lm.y, lm.z]
+            
+        # Compute bounding box from landmarks range
+        xs = landmarks[:, 0]
+        ys = landmarks[:, 1]
+        xmin, xmax = np.min(xs), np.max(xs)
+        ymin, ymax = np.min(ys), np.max(ys)
+        width = xmax - xmin
+        height = ymax - ymin
         
-        # Calculate centers
+        # Calculate center coordinate of the face bounding box
         center_x = xmin + width / 2.0
         center_y = ymin + height / 2.0
         
-        # Depth heuristic: larger face = closer, smaller = further
-        # When height is self._ref_face_height, depth is 1.0 (arbitrary unit)
+        # Depth estimate (larger face = closer, smaller = further)
         depth_est = self._ref_face_height / max(0.01, height)
-        
-        # Clip/smooth depth range to prevent anomalies
         depth_est = np.clip(depth_est, 0.5, 4.0)
         
         center = np.array([center_x, center_y, depth_est], dtype=np.float32)
         
+        # Confidence score category value (default to 1.0 since landmarks are detected)
+        score = 1.0
+        
         return FaceData(
             center=center,
             bbox=(xmin, ymin, width, height),
+            landmarks=landmarks,
             confidence=score
         )
 
     def release(self) -> None:
-        """Close FaceDetector instance."""
+        """Close FaceLandmarker instance."""
         try:
             self._detector.close()
         except Exception as e:
