@@ -99,7 +99,7 @@ class BackgroundRenderer:
         Args:
             frame_rgb: Camera frame as an ``(H, W, 3)`` uint8 numpy array in RGB order.
         """
-        if frame_rgb is None:
+        if frame_rgb is None or frame_rgb.size == 0 or len(frame_rgb.shape) < 2 or frame_rgb.shape[0] == 0 or frame_rgb.shape[1] == 0:
             return
 
         h, w = frame_rgb.shape[:2]
