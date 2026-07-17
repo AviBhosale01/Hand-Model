@@ -199,8 +199,8 @@ class SceneRenderer:
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # ── 3. Draw background (camera feed) ─────────────────────────────
-        # Only draw directly to screen if FSM is IDLE (otherwise drawn inside FBO)
-        if state == AppState.IDLE and self._background is not None:
+        # Renders directly to screen (framebuffer 0)
+        if self._background is not None:
             self._background.render()
 
         # ── 4. 3D scene (if not idle) ─────────────────────────────────────
@@ -237,9 +237,7 @@ class SceneRenderer:
             glClearColor(0.0, 0.0, 0.0, 0.0)
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
             
-            # Draw background camera feed inside FBO so it is preserved in the composite
-            if self._background is not None:
-                self._background.render()
+            # Background is drawn directly to screen now to keep camera clear
 
         # ── Camera / projection matrices ──────────────────────────────────
         aspect = width / max(height, 1)

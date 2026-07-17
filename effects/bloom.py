@@ -182,6 +182,10 @@ class BloomEffect:
         glBindFramebuffer(GL_FRAMEBUFFER, 0)
         shader_combine.use()
         
+        # Explicitly enable alpha blending to composite hologram onto camera feed
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, self._scene_tex)
         shader_combine.set_int("scene", 0)
