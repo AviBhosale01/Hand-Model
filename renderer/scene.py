@@ -310,7 +310,12 @@ class SceneRenderer:
             model_rotation_x = pyrr.matrix44.create_from_x_rotation(
                 math.radians(ctx.manual_rotation_x), dtype=np.float32
             )
-            model_rotation = pyrr.matrix44.multiply(model_rotation_x, model_rotation_y)
+            model_rotation_z = pyrr.matrix44.create_from_z_rotation(
+                math.radians(ctx.manual_rotation_z), dtype=np.float32
+            )
+            model_rotation = pyrr.matrix44.multiply(
+                model_rotation_z, pyrr.matrix44.multiply(model_rotation_x, model_rotation_y)
+            )
 
             # Scale the model to fit within the cube (slightly smaller)
             model_size = ctx.model_scale * s.cube_base_size * 0.7
@@ -413,23 +418,39 @@ class SceneRenderer:
             dt_text = f"dt: {timer.dt * 1000.0:.1f}ms  frame: {timer.frame_count}"
             self._hud.render_text(dt_text, 10.0, line_y, scale=text_scale, color=(0.5, 0.5, 0.5))
 
-        # ── Bottom-Right Interactive 90° Model Rotation Button ─────────────────
-        btn_w, btn_h = 175.0, 44.0
-        btn_x = float(self._width) - btn_w - 20.0
-        btn_y = float(self._height) - btn_h - 20.0
-
+        # ── Bottom-Right Interactive 3D Orientation Control Panel ──────────────
+        btn_w, btn_h = 115.0, 38.0
+        btn_y = float(self._height) - btn_h - 18.0
         mx, my = mouse_pos
-        is_hovered = (btn_x <= mx <= btn_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
 
-        angle_y = int(ctx.manual_rotation_y % 360)
-        btn_text = f"ROTATE 90 deg ({angle_y} deg)"
-        self._hud.render_button(btn_x, btn_y, btn_w, btn_h, text=btn_text, is_hovered=is_hovered)
+        # Button 1: X-Axis Rotation (X-Rot 90)
+        b1_x = float(self._width) - (btn_w * 4 + 45.0)
+        h1 = (b1_x <= mx <= b1_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
+        t1 = f"X-Rot 90 ({int(ctx.manual_rotation_x % 360)})"
+        self._hud.render_button(b1_x, btn_y, btn_w, btn_h, text=t1, is_hovered=h1)
 
-        # Small hint label above button
-        hint_text = "Click: Turn 90 deg | R-Click: Pitch 90 deg"
-        hint_w = len(hint_text) * (self._hud._char_width * 0.24)
-        hint_x = float(self._width) - hint_w - 20.0
-        self._hud.render_text(hint_text, hint_x, btn_y - 18.0, scale=0.24, color=(0.0, 0.75, 0.95))
+        # Button 2: Y-Axis Rotation (Y-Rot 90)
+        b2_x = float(self._width) - (btn_w * 3 + 35.0)
+        h2 = (b2_x <= mx <= b2_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
+        t2 = f"Y-Rot 90 ({int(ctx.manual_rotation_y % 360)})"
+        self._hud.render_button(b2_x, btn_y, btn_w, btn_h, text=t2, is_hovered=h2)
+
+        # Button 3: Z-Axis Rotation (Z-Rot 90)
+        b3_x = float(self._width) - (btn_w * 2 + 25.0)
+        h3 = (b3_x <= mx <= b3_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
+        t3 = f"Z-Rot 90 ({int(ctx.manual_rotation_z % 360)})"
+        self._hud.render_button(b3_x, btn_y, btn_w, btn_h, text=t3, is_hovered=h3)
+
+        # Button 4: Reset
+        b4_x = float(self._width) - (btn_w + 15.0)
+        h4 = (b4_x <= mx <= b4_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
+        self._hud.render_button(b4_x, btn_y, btn_w, btn_h, text="Reset 0 deg", is_hovered=h4, color=(1.0, 0.4, 0.4))
+
+        # Panel header hint label
+        hint_text = "Click to rotate 3D model by 90 deg (X, Y, Z Axes):"
+        hint_w = len(hint_text) * (self._hud._char_width * 0.22)
+        hint_x = float(self._width) - hint_w - 15.0
+        self._hud.render_text(hint_text, hint_x, btn_y - 18.0, scale=0.22, color=(0.0, 0.85, 1.0))
 
         self._hud.end()
 
