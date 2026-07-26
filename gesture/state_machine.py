@@ -52,7 +52,7 @@ class StateContext:
     cube_float_offset: float = 0.0
     
     # Render style: False = Hologram Glow, True = Solid Original Colors
-    render_solid_mode: bool = False
+    render_solid_mode: bool = True
     
     # Per-model saved manual rotation offsets: { model_index: [rot_x, rot_y, rot_z] }
     saved_model_orientations: Dict[int, List[float]] = field(default_factory=dict)
