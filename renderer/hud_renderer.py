@@ -115,6 +115,7 @@ class HUDRenderer:
 
         # ── Upload atlas to GPU ───────────────────────────────────────────
         self._atlas_texture = self._create_atlas_texture(atlas_data)
+        self._white_texture = self._create_white_texture()
 
         # ── Create dynamic VBO for text quads ─────────────────────────────
         self._vao = int(glGenVertexArrays(1))
@@ -251,6 +252,18 @@ class HUDRenderer:
         glBindTexture(GL_TEXTURE_2D, 0)
         return tex_id
 
+    def _create_white_texture(self) -> int:
+        """Create a 1x1 white texture for drawing solid colored UI quads."""
+        tex_id = int(glGenTextures(1))
+        glBindTexture(GL_TEXTURE_2D, tex_id)
+        white_pixel = np.array([255], dtype=np.uint8)
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, 1, 1, 0, GL_RED, 0x1401, white_pixel)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+        glBindTexture(GL_TEXTURE_2D, 0)
+        return tex_id
+
     # ──────────────────────────────────────────────────────────────────────────
     # Orthographic projection
     # ──────────────────────────────────────────────────────────────────────────
@@ -274,8 +287,8 @@ class HUDRenderer:
         proj[1, 1] = -2.0 / height   # Y-axis flipped (top-left origin)
         proj[2, 2] = -1.0
         proj[3, 3] = 1.0
-        proj[0, 3] = -1.0
-        proj[1, 3] = 1.0
+        proj[3, 0] = -1.0
+        proj[3, 1] = 1.0
         return proj
 
     # ──────────────────────────────────────────────────────────────────────────
@@ -353,6 +366,7 @@ class HUDRenderer:
         self._shader.use()
         self._shader.set_mat4("uProjection", self._projection)
         self._shader.set_vec3("uTextColor", color)
+        self._shader.set_float("uOpacity", 1.0)
         self._shader.set_int("uFontAtlas", 0)
 
         # ── Bind atlas texture ────────────────────────────────────────────
@@ -363,6 +377,95 @@ class HUDRenderer:
         glBindVertexArray(self._vao)
         glDrawArrays(GL_TRIANGLES, 0, num_vertices)
         glBindVertexArray(0)
+
+    def render_rect(
+        self,
+        x: float,
+        y: float,
+        w: float,
+        h: float,
+        color: Tuple[float, float, float] = (0.0, 0.8, 1.0),
+        opacity: float = 0.4,
+    ) -> None:
+        """Render a solid semi-transparent rectangle in screen space."""
+        vertices = [
+            x, y, 0.5, 0.5,
+            x, y + h, 0.5, 0.5,
+            x + w, y + h, 0.5, 0.5,
+
+            x, y, 0.5, 0.5,
+            x + w, y + h, 0.5, 0.5,
+            x + w, y, 0.5, 0.5,
+        ]
+        vertex_data = np.array(vertices, dtype=np.float32)
+
+        glBindBuffer(GL_ARRAY_BUFFER, self._vbo)
+        glBufferSubData(GL_ARRAY_BUFFER, 0, vertex_data.nbytes, vertex_data)
+
+        self._shader.use()
+        self._shader.set_mat4("uProjection", self._projection)
+        self._shader.set_vec3("uTextColor", color)
+        self._shader.set_float("uOpacity", opacity)
+        self._shader.set_int("uFontAtlas", 0)
+
+        glActiveTexture(GL_TEXTURE0)
+        glBindTexture(GL_TEXTURE_2D, self._white_texture)
+
+        glBindVertexArray(self._vao)
+        glDrawArrays(GL_TRIANGLES, 0, 6)
+        glBindVertexArray(0)
+
+    def render_rect_outline(
+        self,
+        x: float,
+        y: float,
+        w: float,
+        h: float,
+        thickness: float = 2.0,
+        color: Tuple[float, float, float] = (0.0, 0.8, 1.0),
+        opacity: float = 0.9,
+    ) -> None:
+        """Render a rectangular outline border in screen space."""
+        # Top
+        self.render_rect(x, y, w, thickness, color, opacity)
+        # Bottom
+        self.render_rect(x, y + h - thickness, w, thickness, color, opacity)
+        # Left
+        self.render_rect(x, y, thickness, h, color, opacity)
+        # Right
+        self.render_rect(x + w - thickness, y, thickness, h, color, opacity)
+
+    def render_button(
+        self,
+        x: float,
+        y: float,
+        w: float,
+        h: float,
+        text: str,
+        is_hovered: bool = False,
+        color: Tuple[float, float, float] = (0.0, 0.8, 1.0),
+    ) -> None:
+        """Render a modern interactive UI button with hover states and text."""
+        # Background fill
+        bg_opacity = 0.75 if is_hovered else 0.45
+        bg_color = (0.0, 0.45, 0.65) if is_hovered else (0.05, 0.15, 0.28)
+        self.render_rect(x, y, w, h, color=bg_color, opacity=bg_opacity)
+
+        # Border outline
+        border_color = (0.3, 1.0, 1.0) if is_hovered else color
+        border_opacity = 1.0 if is_hovered else 0.85
+        self.render_rect_outline(x, y, w, h, thickness=2.0, color=border_color, opacity=border_opacity)
+
+        # Calculate text position (centered in button box)
+        scale = 0.32
+        cw = self._char_width * scale
+        ch = self._char_height * scale
+        text_w = len(text) * cw
+        text_x = x + (w - text_w) / 2.0
+        text_y = y + (h - ch) / 2.0
+
+        text_color = (1.0, 1.0, 1.0) if is_hovered else (0.0, 0.9, 1.0)
+        self.render_text(text, text_x, text_y, scale=scale, color=text_color)
 
     # ──────────────────────────────────────────────────────────────────────────
     # State management
@@ -404,8 +507,11 @@ class HUDRenderer:
             if self._atlas_texture:
                 glDeleteTextures([self._atlas_texture])
                 self._atlas_texture = 0
+            if hasattr(self, '_white_texture') and self._white_texture:
+                glDeleteTextures([self._white_texture])
+                self._white_texture = 0
         except Exception:
-            logger.warning("Failed to delete HUD atlas texture")
+            logger.warning("Failed to delete HUD textures")
 
         try:
             if self._vbo:
