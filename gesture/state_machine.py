@@ -3,7 +3,7 @@ import math
 import numpy as np
 from enum import Enum
 from dataclasses import dataclass, field
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from config.settings import Settings
 from tracking.hand_tracker import HandData
 from gesture.detector import GestureDetector, PinchState, HandPose
@@ -50,6 +50,9 @@ class StateContext:
     manual_rotation_y: float = 0.0
     manual_rotation_z: float = 0.0
     cube_float_offset: float = 0.0
+    
+    # Per-model saved manual rotation offsets: { model_index: [rot_x, rot_y, rot_z] }
+    saved_model_orientations: Dict[int, List[float]] = field(default_factory=dict)
 
 
 class StateMachine:
@@ -84,23 +87,37 @@ class StateMachine:
     def rotate_model_manual(
         self, delta_x: float = 0.0, delta_y: float = 0.0, delta_z: float = 0.0
     ) -> None:
-        """Rotates the active 3D model by 90 degree increments manually along X, Y, or Z axes."""
-        self._context.manual_rotation_x = (self._context.manual_rotation_x + delta_x) % 360.0
-        self._context.manual_rotation_y = (self._context.manual_rotation_y + delta_y) % 360.0
-        self._context.manual_rotation_z = (self._context.manual_rotation_z + delta_z) % 360.0
+        """Rotates the active 3D model manually along X, Y, or Z axes and saves orientation for this specific model."""
+        idx = max(0, self._context.model_index)
+        if idx not in self._context.saved_model_orientations:
+            self._context.saved_model_orientations[idx] = [0.0, 0.0, 0.0]
+            
+        cur = self._context.saved_model_orientations[idx]
+        cur[0] = (cur[0] + delta_x) % 360.0
+        cur[1] = (cur[1] + delta_y) % 360.0
+        cur[2] = (cur[2] + delta_z) % 360.0
+
+        self._context.manual_rotation_x = cur[0]
+        self._context.manual_rotation_y = cur[1]
+        self._context.manual_rotation_z = cur[2]
+
         logger.info(
-            "Model manually rotated! Offsets -> X(Pitch): %.0f°, Y(Yaw): %.0f°, Z(Roll): %.0f°",
-            self._context.manual_rotation_x,
-            self._context.manual_rotation_y,
-            self._context.manual_rotation_z,
+            "Model #%d ('%s') rotation saved -> X(Pitch): %.0f°, Y(Yaw): %.0f°, Z(Roll): %.0f°",
+            idx,
+            self._context.current_model_name,
+            cur[0],
+            cur[1],
+            cur[2],
         )
 
     def reset_model_manual_rotation(self) -> None:
-        """Resets all manual rotation offsets back to 0 degrees."""
+        """Resets manual rotation offsets back to 0 degrees for the active model."""
+        idx = max(0, self._context.model_index)
+        self._context.saved_model_orientations[idx] = [0.0, 0.0, 0.0]
         self._context.manual_rotation_x = 0.0
         self._context.manual_rotation_y = 0.0
         self._context.manual_rotation_z = 0.0
-        logger.info("Model manual rotation offsets reset to 0°")
+        logger.info("Model #%d ('%s') rotation reset to 0°", idx, self._context.current_model_name)
 
     @property
     def state(self) -> AppState:
@@ -122,6 +139,13 @@ class StateMachine:
         """Main FSM tick. Updates the current state and handles inputs/transitions."""
         self._elapsed_time += dt
         self._context.total_models = model_count
+
+        # Sync active display angles from the active model's saved orientation
+        idx = max(0, self._context.model_index)
+        saved = self._context.saved_model_orientations.get(idx, [0.0, 0.0, 0.0])
+        self._context.manual_rotation_x = saved[0]
+        self._context.manual_rotation_y = saved[1]
+        self._context.manual_rotation_z = saved[2]
 
         # 1. Update Head Tracking (EMA filter)
         if head_pos is not None:
