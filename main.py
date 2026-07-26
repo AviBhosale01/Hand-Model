@@ -81,6 +81,10 @@ class ARHologramApp:
         elif key == glfw.KEY_S:
             self._take_screenshot()
             
+        elif key in (glfw.KEY_H, glfw.KEY_M):
+            logger.info("Hotkey 'H/M' pressed: Toggling render style...")
+            self.state_machine.toggle_solid_mode()
+
         elif key == glfw.KEY_X:
             logger.info("Hotkey 'X' pressed: Rotating Pitch 90°...")
             self.state_machine.rotate_model_manual(delta_x=90.0)
@@ -111,16 +115,20 @@ class ARHologramApp:
             return
 
         fb_x, fb_y = self.window.get_framebuffer_mouse_pos()
-        btn_w, btn_h = 115.0, 38.0
+        btn_w, btn_h = 130.0, 38.0
         btn_y = float(self.window.height) - btn_h - 18.0
 
-        b1_x = float(self.window.width) - (btn_w * 4 + 45.0)
-        b2_x = float(self.window.width) - (btn_w * 3 + 35.0)
-        b3_x = float(self.window.width) - (btn_w * 2 + 25.0)
-        b4_x = float(self.window.width) - (btn_w + 15.0)
+        b0_x = float(self.window.width) - (btn_w * 5 + 65.0)
+        b1_x = float(self.window.width) - (btn_w * 4 + 52.0)
+        b2_x = float(self.window.width) - (btn_w * 3 + 39.0)
+        b3_x = float(self.window.width) - (btn_w * 2 + 26.0)
+        b4_x = float(self.window.width) - (btn_w + 13.0)
 
+        # Check Style (Solid Opaque vs Hologram)
+        if b0_x <= fb_x <= b0_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
+            self.state_machine.toggle_solid_mode()
         # Check Pitch (X-axis)
-        if b1_x <= fb_x <= b1_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
+        elif b1_x <= fb_x <= b1_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
             self.state_machine.rotate_model_manual(delta_x=90.0)
         # Check Yaw (Y-axis)
         elif b2_x <= fb_x <= b2_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:

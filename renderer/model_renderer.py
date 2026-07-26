@@ -176,19 +176,9 @@ class ModelRenderer:
         time: float,
         glow_color: Tuple[float, float, float],
         view_pos: Optional[np.ndarray] = None,
+        solid_mode: bool = False,
     ) -> None:
-        """Render the loaded mesh with the holographic shader.
-
-        Args:
-            model_matrix: 4×4 model (world) transform.
-            view: 4×4 view (camera) matrix.
-            projection: 4×4 projection matrix.
-            opacity: Overall model opacity in ``[0, 1]``.
-            time: Elapsed application time in seconds.
-            glow_color: RGB glow colour in ``[0, 1]`` range.
-            view_pos: Camera world-space position (vec3).  Falls back to
-                      ``(0, 0, 3)`` if not supplied.
-        """
+        """Render the loaded mesh with holographic or solid shader style."""
         if not self.has_mesh or opacity <= 0.0:
             return
 
@@ -220,10 +210,15 @@ class ModelRenderer:
             self._shader.set_float("uOpacity", opacity)
             self._shader.set_float("uTime", time)
             self._shader.set_vec3("uViewPos", view_pos)
+            self._shader.set_int("uSolidMode", 1 if solid_mode else 0)
 
-            # ── GL state for holographic look ─────────────────────────────
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE)   # Additive blending
-            glDepthMask(GL_FALSE)               # Don't write to depth buffer
+            # ── GL state for holographic vs solid look ────────────────────
+            if solid_mode:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+                glDepthMask(GL_TRUE)
+            else:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE)   # Additive blending
+                glDepthMask(GL_FALSE)               # Don't write to depth buffer
 
             # ── Draw ──────────────────────────────────────────────────────
             glBindVertexArray(self._vao)

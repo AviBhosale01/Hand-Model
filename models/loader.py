@@ -105,13 +105,8 @@ class ModelLoader:
                 mesh.create_vertex_normals()
                 normals = mesh.vertex_normals
 
-            # Extract colors per vertex using trimesh visual conversion
-            try:
-                color_visuals = mesh.visual.to_color()
-                colors = color_visuals.vertex_colors[:, :3].astype(np.float32) / 255.0
-            except Exception as e:
-                logger.warning(f"Could not convert visuals to color: {e}. Using default white color.")
-                colors = np.ones((len(vertices), 3), dtype=np.float32)
+            # Extract colors per vertex (sampling texture maps, material colors, or vertex colors)
+            colors = self._extract_mesh_colors(mesh)
 
             # Normalize to unit cube centered at origin
             norm_vertices, scale, offset = normalize_mesh_vertices(vertices)
@@ -133,6 +128,51 @@ class ModelLoader:
         except Exception as e:
             logger.error(f"Failed to load model {path}: {e}", exc_info=True)
             return None
+
+    @staticmethod
+    def _extract_mesh_colors(mesh: trimesh.Trimesh) -> np.ndarray:
+        """Extracts vertex RGB colors from texture map images, material colors, or vertex color attributes."""
+        n_verts = len(mesh.vertices)
+        colors = np.ones((n_verts, 3), dtype=np.float32)
+
+        try:
+            # 1. Texture map sampling at vertex UV coordinates
+            if hasattr(mesh.visual, 'uv') and mesh.visual.uv is not None and len(mesh.visual.uv) == n_verts:
+                if hasattr(mesh.visual, 'material') and hasattr(mesh.visual.material, 'image') and mesh.visual.material.image is not None:
+                    img = mesh.visual.material.image.convert('RGB')
+                    img_np = np.array(img, dtype=np.float32) / 255.0
+                    img_h, img_w, _ = img_np.shape
+
+                    uvs = np.asarray(mesh.visual.uv, dtype=np.float32)
+                    u = np.clip(uvs[:, 0] % 1.0, 0.0, 0.999)
+                    v = np.clip((1.0 - uvs[:, 1]) % 1.0, 0.0, 0.999)
+
+                    px_x = (u * img_w).astype(int)
+                    px_y = (v * img_h).astype(int)
+
+                    colors = img_np[px_y, px_x]
+                    logger.info("Successfully sampled %d texture colors for mesh", n_verts)
+                    return colors
+
+            # 2. Try converting visuals to vertex color array
+            color_visuals = mesh.visual.to_color()
+            if hasattr(color_visuals, 'vertex_colors') and color_visuals.vertex_colors is not None and len(color_visuals.vertex_colors) == n_verts:
+                colors = color_visuals.vertex_colors[:, :3].astype(np.float32) / 255.0
+                return colors
+
+            # 3. Main material base color fallback
+            if hasattr(mesh.visual, 'material') and hasattr(mesh.visual.material, 'main_color'):
+                mc = mesh.visual.material.main_color
+                if len(mc) >= 3:
+                    colors[:, 0] = mc[0] / 255.0
+                    colors[:, 1] = mc[1] / 255.0
+                    colors[:, 2] = mc[2] / 255.0
+                    return colors
+
+        except Exception as e:
+            logger.warning("Color extraction fallback warning: %s", e)
+
+        return colors
 
     def load_default_model(self) -> MeshData:
         """Generates a procedural glowing icosphere to use as a fallback

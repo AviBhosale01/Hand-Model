@@ -456,8 +456,8 @@ class HUDRenderer:
         border_opacity = 1.0 if is_hovered else 0.85
         self.render_rect_outline(x, y, w, h, thickness=2.0, color=border_color, opacity=border_opacity)
 
-        # Calculate text position (centered in button box)
-        scale = 0.32
+        # Calculate text position (centered and dynamically fitted inside box)
+        scale = min(0.24, (w - 12.0) / max(1.0, len(text) * self._char_width))
         cw = self._char_width * scale
         ch = self._char_height * scale
         text_w = len(text) * cw

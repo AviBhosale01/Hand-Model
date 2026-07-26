@@ -335,6 +335,7 @@ class SceneRenderer:
                 time=elapsed,
                 glow_color=s.glow_color,
                 view_pos=eye,
+                solid_mode=ctx.render_solid_mode,
             )
 
         # ── c. Render particles ───────────────────────────────────────────
@@ -418,36 +419,43 @@ class SceneRenderer:
             dt_text = f"dt: {timer.dt * 1000.0:.1f}ms  frame: {timer.frame_count}"
             self._hud.render_text(dt_text, 10.0, line_y, scale=text_scale, color=(0.5, 0.5, 0.5))
 
-        # ── Bottom-Right Interactive 3D Orientation Control Panel ──────────────
-        btn_w, btn_h = 115.0, 38.0
+        # ── Bottom-Right Interactive 3D Orientation & Style Control Panel ──────
+        btn_w, btn_h = 130.0, 38.0
         btn_y = float(self._height) - btn_h - 18.0
         mx, my = mouse_pos
 
+        # Button 0: Render Style Toggle (Solid Opaque vs Hologram Glow)
+        b0_x = float(self._width) - (btn_w * 5 + 65.0)
+        h0 = (b0_x <= mx <= b0_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
+        t0 = "Style: SOLID" if ctx.render_solid_mode else "Style: HOLO"
+        c0 = (0.2, 0.9, 0.4) if ctx.render_solid_mode else (0.0, 0.8, 1.0)
+        self._hud.render_button(b0_x, btn_y, btn_w, btn_h, text=t0, is_hovered=h0, color=c0)
+
         # Button 1: X-Axis Rotation (X-Rot 90)
-        b1_x = float(self._width) - (btn_w * 4 + 45.0)
+        b1_x = float(self._width) - (btn_w * 4 + 52.0)
         h1 = (b1_x <= mx <= b1_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
         t1 = f"X-Rot 90 ({int(ctx.manual_rotation_x % 360)})"
         self._hud.render_button(b1_x, btn_y, btn_w, btn_h, text=t1, is_hovered=h1)
 
         # Button 2: Y-Axis Rotation (Y-Rot 90)
-        b2_x = float(self._width) - (btn_w * 3 + 35.0)
+        b2_x = float(self._width) - (btn_w * 3 + 39.0)
         h2 = (b2_x <= mx <= b2_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
         t2 = f"Y-Rot 90 ({int(ctx.manual_rotation_y % 360)})"
         self._hud.render_button(b2_x, btn_y, btn_w, btn_h, text=t2, is_hovered=h2)
 
         # Button 3: Z-Axis Rotation (Z-Rot 90)
-        b3_x = float(self._width) - (btn_w * 2 + 25.0)
+        b3_x = float(self._width) - (btn_w * 2 + 26.0)
         h3 = (b3_x <= mx <= b3_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
         t3 = f"Z-Rot 90 ({int(ctx.manual_rotation_z % 360)})"
         self._hud.render_button(b3_x, btn_y, btn_w, btn_h, text=t3, is_hovered=h3)
 
         # Button 4: Reset
-        b4_x = float(self._width) - (btn_w + 15.0)
+        b4_x = float(self._width) - (btn_w + 13.0)
         h4 = (b4_x <= mx <= b4_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
         self._hud.render_button(b4_x, btn_y, btn_w, btn_h, text="Reset 0 deg", is_hovered=h4, color=(1.0, 0.4, 0.4))
 
         # Panel header hint label
-        hint_text = "Click to rotate 3D model by 90 deg (X, Y, Z Axes):"
+        hint_text = "Render Style & 90 deg 3D Rotation Controls:"
         hint_w = len(hint_text) * (self._hud._char_width * 0.22)
         hint_x = float(self._width) - hint_w - 15.0
         self._hud.render_text(hint_text, hint_x, btn_y - 18.0, scale=0.22, color=(0.0, 0.85, 1.0))

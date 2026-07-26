@@ -51,6 +51,9 @@ class StateContext:
     manual_rotation_z: float = 0.0
     cube_float_offset: float = 0.0
     
+    # Render style: False = Hologram Glow, True = Solid Original Colors
+    render_solid_mode: bool = False
+    
     # Per-model saved manual rotation offsets: { model_index: [rot_x, rot_y, rot_z] }
     saved_model_orientations: Dict[int, List[float]] = field(default_factory=dict)
 
@@ -83,6 +86,12 @@ class StateMachine:
         
         # EMA filter factors for smooth tracking
         self._head_smoothing = settings.smoothing_factor
+
+    def toggle_solid_mode(self) -> None:
+        """Toggles between Hologram Blue Glow and Solid Original Colors rendering mode."""
+        self._context.render_solid_mode = not self._context.render_solid_mode
+        style_name = "SOLID OPAQUE" if self._context.render_solid_mode else "HOLOGRAM GLOW"
+        logger.info("3D Render style toggled -> %s", style_name)
 
     def rotate_model_manual(
         self, delta_x: float = 0.0, delta_y: float = 0.0, delta_z: float = 0.0

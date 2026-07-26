@@ -9,6 +9,7 @@ uniform vec3 uGlowColor;
 uniform float uOpacity;
 uniform float uTime;
 uniform vec3 uViewPos;
+uniform int uSolidMode; // 0 = Hologram Glow, 1 = Solid Original Colors
 
 void main() {
     vec3 N = normalize(v_Normal);
@@ -22,20 +23,22 @@ void main() {
     
     // Specular shading (Blinn-Phong)
     vec3 H = normalize(L + V);
-    float spec = pow(max(dot(N, H), 0.0), 32.0) * 0.3;
+    float spec = pow(max(dot(N, H), 0.0), 32.0) * 0.4;
     
-    // Soft ambient term
-    float ambient = 0.3;
-    
-    // Shaded original color
-    vec3 shaded_color = v_Color * (diff + ambient) + vec3(spec);
-    
-    // Subtly blend with a fresnel outer rim glow to match the holographic style
-    float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
-    vec3 glow = uGlowColor * fresnel * 0.35;
-    
-    vec3 final_color = shaded_color + glow;
-    
-    // Output color with opacity animation (for gesture summon transitions)
-    FragColor = vec4(final_color, uOpacity);
+    if (uSolidMode == 1) {
+        // ── Solid Opaque Original Colors Mode ────────────────────────────
+        float ambient = 0.45;
+        vec3 col = v_Color * (diff * 0.7 + ambient) + vec3(spec);
+        FragColor = vec4(col, 1.0); // 100% solid, fully opaque
+    } else {
+        // ── Holographic Cyan Glow Mode ────────────────────────────────────
+        float ambient = 0.3;
+        vec3 shaded_color = v_Color * (diff + ambient) + vec3(spec);
+        
+        float fresnel = pow(1.0 - max(dot(N, V), 0.0), 3.0);
+        vec3 glow = uGlowColor * fresnel * 0.35;
+        vec3 final_color = shaded_color + glow;
+        
+        FragColor = vec4(final_color, uOpacity);
+    }
 }
