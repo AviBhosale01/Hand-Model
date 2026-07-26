@@ -293,13 +293,15 @@ class SceneRenderer:
                 glow_intensity=s.glow_intensity,
             )
 
-        # ── b. Render 3D model (if visible) ───────────────────────────────
+        # ── b. Render 3D model inside bloom FBO only in hologram mode ────────
+        # In solid mode the model is rendered AFTER bloom (directly to screen)
+        self._solid_model_pending = False
         if (
             self._model is not None
             and self._model.has_mesh
             and ctx.model_opacity > 0.0
         ):
-            # Model sits inside the cube, independently rotated and scaled
+            # Build shared model matrix (reused for solid post-bloom pass too)
             model_translation = pyrr.matrix44.create_from_translation(
                 pyrr.Vector3([cube_world_pos[0], float_y, cube_world_pos[2]]),
                 dtype=np.float32,
@@ -316,27 +318,34 @@ class SceneRenderer:
             model_rotation = pyrr.matrix44.multiply(
                 model_rotation_z, pyrr.matrix44.multiply(model_rotation_x, model_rotation_y)
             )
-
-            # Scale the model to fit within the cube (slightly smaller)
             model_size = ctx.model_scale * s.cube_base_size * 0.7
             model_scale = pyrr.matrix44.create_from_scale(
                 pyrr.Vector3([model_size, model_size, model_size]),
                 dtype=np.float32,
             )
-
             model_mat = pyrr.matrix44.multiply(model_scale, model_rotation)
             model_mat = pyrr.matrix44.multiply(model_mat, model_translation)
 
-            self._model.render(
-                model_matrix=model_mat,
-                view=view,
-                projection=projection,
-                opacity=ctx.model_opacity,
-                time=elapsed,
-                glow_color=s.glow_color,
-                view_pos=eye,
-                solid_mode=ctx.render_solid_mode,
-            )
+            if ctx.render_solid_mode:
+                # Save matrix info for the post-bloom solid render pass
+                self._solid_model_mat = model_mat
+                self._solid_view = view
+                self._solid_projection = projection
+                self._solid_eye = eye
+                self._solid_glow = s.glow_color
+                self._solid_model_pending = True
+            else:
+                # Hologram mode: render inside bloom FBO as before
+                self._model.render(
+                    model_matrix=model_mat,
+                    view=view,
+                    projection=projection,
+                    opacity=ctx.model_opacity,
+                    time=elapsed,
+                    glow_color=s.glow_color,
+                    view_pos=eye,
+                    solid_mode=False,
+                )
 
         # ── c. Render particles ───────────────────────────────────────────
         if self._particles is not None:
@@ -362,6 +371,25 @@ class SceneRenderer:
                 self._bloom_blur_shader,
                 self._bloom_combine_shader,
             )
+
+        # ── Solid model post-bloom pass (directly to screen, fully opaque) ──
+        # Rendered here so bloom FBO blue-glow effect does NOT affect it.
+        if getattr(self, '_solid_model_pending', False):
+            from OpenGL.GL import glEnable, glDepthMask, glBlendFunc, GL_DEPTH_TEST, GL_TRUE, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA
+            glEnable(GL_DEPTH_TEST)
+            glDepthMask(GL_TRUE)
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+            self._model.render(
+                model_matrix=self._solid_model_mat,
+                view=self._solid_view,
+                projection=self._solid_projection,
+                opacity=1.0,          # Always fully opaque in solid mode
+                time=elapsed,
+                glow_color=self._solid_glow,
+                view_pos=self._solid_eye,
+                solid_mode=True,
+            )
+            self._solid_model_pending = False
 
         # Restore clear colour for next frame
         glClearColor(0.0, 0.0, 0.0, 1.0)
@@ -419,46 +447,59 @@ class SceneRenderer:
             dt_text = f"dt: {timer.dt * 1000.0:.1f}ms  frame: {timer.frame_count}"
             self._hud.render_text(dt_text, 10.0, line_y, scale=text_scale, color=(0.5, 0.5, 0.5))
 
-        # ── Bottom-Right Interactive 3D Orientation & Style Control Panel ──────
-        btn_w, btn_h = 130.0, 38.0
-        btn_y = float(self._height) - btn_h - 18.0
-        mx, my = mouse_pos
+        # ── Bottom-Right Keyboard Shortcut Info Panel ────────────────────────
+        info_scale  = 0.42          # Large, clearly legible text
+        info_line_h = 32.0          # Generous line height
+        info_pad_x  = 14.0          # Horizontal inner padding
+        info_pad_y  = 10.0          # Vertical inner padding
+        info_margin_r = 16.0        # Distance from right screen edge
+        info_margin_b = 16.0        # Distance from bottom screen edge
 
-        # Button 0: Render Style Toggle (Solid Opaque vs Hologram Glow)
-        b0_x = float(self._width) - (btn_w * 5 + 65.0)
-        h0 = (b0_x <= mx <= b0_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
-        t0 = "Style: SOLID" if ctx.render_solid_mode else "Style: HOLO"
-        c0 = (0.2, 0.9, 0.4) if ctx.render_solid_mode else (0.0, 0.8, 1.0)
-        self._hud.render_button(b0_x, btn_y, btn_w, btn_h, text=t0, is_hovered=h0, color=c0)
+        style_label = f"Style: {'SOLID' if ctx.render_solid_mode else 'HOLO'}"
+        style_val_color = (0.15, 1.0, 0.4) if ctx.render_solid_mode else (1.0, 0.75, 0.0)
 
-        # Button 1: X-Axis Rotation (X-Rot 90)
-        b1_x = float(self._width) - (btn_w * 4 + 52.0)
-        h1 = (b1_x <= mx <= b1_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
-        t1 = f"X-Rot 90 ({int(ctx.manual_rotation_x % 360)})"
-        self._hud.render_button(b1_x, btn_y, btn_w, btn_h, text=t1, is_hovered=h1)
+        # Each row: (value text, value color, key hint text)
+        KEY_COLOR   = (1.0, 1.0, 0.0)   # Bright yellow — key hints always pop
+        LABEL_COLOR = (1.0, 1.0, 1.0)   # White — value labels
 
-        # Button 2: Y-Axis Rotation (Y-Rot 90)
-        b2_x = float(self._width) - (btn_w * 3 + 39.0)
-        h2 = (b2_x <= mx <= b2_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
-        t2 = f"Y-Rot 90 ({int(ctx.manual_rotation_y % 360)})"
-        self._hud.render_button(b2_x, btn_y, btn_w, btn_h, text=t2, is_hovered=h2)
+        info_rows = [
+            # header
+            ("--- Controls ---",                              (0.0, 0.85, 1.0), ""),
+            (style_label,                                     style_val_color,  "Press H"),
+            (f"X-Rot: {int(ctx.manual_rotation_x % 360)} deg", LABEL_COLOR,  "Press X"),
+            (f"Y-Rot: {int(ctx.manual_rotation_y % 360)} deg", LABEL_COLOR,  "Press Y"),
+            (f"Z-Rot: {int(ctx.manual_rotation_z % 360)} deg", LABEL_COLOR,  "Press Z"),
+            ("Reset Rotation",                                (1.0, 0.35, 0.35), "Press 0"),
+        ]
 
-        # Button 3: Z-Axis Rotation (Z-Rot 90)
-        b3_x = float(self._width) - (btn_w * 2 + 26.0)
-        h3 = (b3_x <= mx <= b3_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
-        t3 = f"Z-Rot 90 ({int(ctx.manual_rotation_z % 360)})"
-        self._hud.render_button(b3_x, btn_y, btn_w, btn_h, text=t3, is_hovered=h3)
+        cw = self._hud._char_width * info_scale
+        ch = self._hud._char_height * info_scale
 
-        # Button 4: Reset
-        b4_x = float(self._width) - (btn_w + 13.0)
-        h4 = (b4_x <= mx <= b4_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
-        self._hud.render_button(b4_x, btn_y, btn_w, btn_h, text="Reset 0 deg", is_hovered=h4, color=(1.0, 0.4, 0.4))
+        # Compute widest row to size the background panel
+        max_row_w = 0.0
+        for (lbl, _, hint) in info_rows:
+            row_w = (len(lbl) + (2 + len(hint) if hint else 0)) * cw
+            max_row_w = max(max_row_w, row_w)
 
-        # Panel header hint label
-        hint_text = "Render Style & 90 deg 3D Rotation Controls:"
-        hint_w = len(hint_text) * (self._hud._char_width * 0.22)
-        hint_x = float(self._width) - hint_w - 15.0
-        self._hud.render_text(hint_text, hint_x, btn_y - 18.0, scale=0.22, color=(0.0, 0.85, 1.0))
+        panel_w = max_row_w + info_pad_x * 2
+        panel_h = len(info_rows) * info_line_h + info_pad_y * 2
+        panel_x = float(self._width) - info_margin_r - panel_w
+        panel_y = float(self._height) - info_margin_b - panel_h
+
+        # Dark semi-transparent backdrop so text is always readable
+        self._hud.render_rect(panel_x - 4, panel_y - 4,
+                              panel_w + 8, panel_h + 8,
+                              color=(0.0, 0.0, 0.0), opacity=0.62)
+
+        # Draw each row
+        for i, (lbl, lcolor, hint) in enumerate(info_rows):
+            row_y = panel_y + info_pad_y + i * info_line_h
+            self._hud.render_text(lbl, panel_x + info_pad_x, row_y,
+                                  scale=info_scale, color=lcolor)
+            if hint:
+                hint_x = panel_x + info_pad_x + len(lbl) * cw + cw * 1.5
+                self._hud.render_text(hint, hint_x, row_y,
+                                      scale=info_scale, color=KEY_COLOR)
 
         self._hud.end()
 

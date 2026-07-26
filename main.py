@@ -84,6 +84,8 @@ class ARHologramApp:
         elif key in (glfw.KEY_H, glfw.KEY_M):
             logger.info("Hotkey 'H/M' pressed: Toggling render style...")
             self.state_machine.toggle_solid_mode()
+            self.model_loader.clear_cache()
+            self._update_rendered_mesh()
 
         elif key == glfw.KEY_X:
             logger.info("Hotkey 'X' pressed: Rotating Pitch 90°...")
@@ -96,6 +98,10 @@ class ARHologramApp:
         elif key == glfw.KEY_Z:
             logger.info("Hotkey 'Z' pressed: Rotating Roll 90°...")
             self.state_machine.rotate_model_manual(delta_z=90.0)
+
+        elif key == glfw.KEY_0:
+            logger.info("Hotkey '0' pressed: Resetting rotation...")
+            self.state_machine.reset_model_manual_rotation()
 
         elif key == glfw.KEY_R and (mods & glfw.MOD_CONTROL):
             # Hot reload all shaders (Ctrl+R)
@@ -110,35 +116,9 @@ class ARHologramApp:
                 logger.error(f"Shader reload failed: {e}", exc_info=True)
 
     def _on_mouse_button(self, window_handle, button, action, mods) -> None:
-        """Callback for mouse click events inside GLFW window."""
-        if action != glfw.PRESS or button != glfw.MOUSE_BUTTON_LEFT:
-            return
+        """Mouse button callback — buttons replaced with keyboard shortcuts, no click handling needed."""
+        pass
 
-        fb_x, fb_y = self.window.get_framebuffer_mouse_pos()
-        btn_w, btn_h = 130.0, 38.0
-        btn_y = float(self.window.height) - btn_h - 18.0
-
-        b0_x = float(self.window.width) - (btn_w * 5 + 65.0)
-        b1_x = float(self.window.width) - (btn_w * 4 + 52.0)
-        b2_x = float(self.window.width) - (btn_w * 3 + 39.0)
-        b3_x = float(self.window.width) - (btn_w * 2 + 26.0)
-        b4_x = float(self.window.width) - (btn_w + 13.0)
-
-        # Check Style (Solid Opaque vs Hologram)
-        if b0_x <= fb_x <= b0_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
-            self.state_machine.toggle_solid_mode()
-        # Check Pitch (X-axis)
-        elif b1_x <= fb_x <= b1_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
-            self.state_machine.rotate_model_manual(delta_x=90.0)
-        # Check Yaw (Y-axis)
-        elif b2_x <= fb_x <= b2_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
-            self.state_machine.rotate_model_manual(delta_y=90.0)
-        # Check Roll (Z-axis)
-        elif b3_x <= fb_x <= b3_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
-            self.state_machine.rotate_model_manual(delta_z=90.0)
-        # Check Reset
-        elif b4_x <= fb_x <= b4_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
-            self.state_machine.reset_model_manual_rotation()
 
     def _take_screenshot(self) -> None:
         """Captures the current frame buffer and saves it to a PNG."""

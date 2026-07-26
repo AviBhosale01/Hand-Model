@@ -210,3 +210,8 @@ class ModelLoader:
     @property
     def model_count(self) -> int:
         return len(self._model_paths)
+
+    def clear_cache(self) -> None:
+        """Clears the mesh cache so all models are re-loaded and re-coloured on next access."""
+        self._cache.clear()
+        logger.info("Model cache cleared; all meshes will be reloaded.")
