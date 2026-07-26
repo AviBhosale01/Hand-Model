@@ -57,6 +57,7 @@ from renderer.cube_renderer import CubeRenderer
 from renderer.hud_renderer import HUDRenderer
 from renderer.model_renderer import ModelRenderer
 from renderer.particle_renderer import ParticleRenderer
+from utils.timer import FrameTimer
 
 logger = logging.getLogger(__name__)
 
@@ -177,7 +178,7 @@ class SceneRenderer:
         frame_rgb: Optional[np.ndarray],
         state: AppState,
         context: StateContext,
-        timer: "FrameTimer",
+        timer: FrameTimer,
         mouse_pos: Tuple[float, float] = (0.0, 0.0),
     ) -> None:
         """Main render coordinating method. Draws camera, 3D hologram, particles, and HUD."""
@@ -400,7 +401,7 @@ class SceneRenderer:
         self,
         state: AppState,
         ctx: StateContext,
-        timer: "FrameTimer",
+        timer: FrameTimer,
         mouse_pos: Tuple[float, float] = (0.0, 0.0),
     ) -> None:
         """Render the HUD overlay (FPS, state, model name, and interactive buttons)."""
