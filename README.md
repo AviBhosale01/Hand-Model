@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
 
 <p align="center">
-  <b>A real-time, Iron Man-style 3D Augmented Reality Hologram Viewer powered by MediaPipe AI and PyOpenGL.</b>
+  <b>A real-time, Iron Man-style 3D Augmented Reality Hologram & Model Viewer powered by MediaPipe AI and PyOpenGL.</b>
 </p>
 
 </div>
@@ -18,26 +18,25 @@
 
 ## 🌟 Overview
 
-**AR Holographic Viewer** turns your webcam feed into a futuristic, interactive holographic display. Using **MediaPipe Tasks** for real-time 478-point face mesh and dual-hand tracking, the engine anchors glowing 3D objects in front of your face and lets you scale, cycle, and orient models using natural hand gestures and a 3D control panel.
+**AR Holographic Viewer** turns your webcam feed into a futuristic, interactive 3D display. Using **MediaPipe Tasks** for real-time 478-point face mesh and dual-hand tracking, the engine anchors 3D models in front of your face and lets you scale, cycle, and re-orient assets using natural hand gestures and keyboard controls.
 
-The graphics engine is built from scratch with **OpenGL 3.3 Core Profile** featuring custom GLSL shaders, HDR Bloom post-processing, particle simulations, and real-time skeleton overlay drawing.
+The graphics engine is built from scratch with **OpenGL 3.3 Core Profile** featuring custom GLSL shaders, texture map sampling, HDR Bloom post-processing, particle simulations, and real-time skeleton overlay drawing.
 
 ---
 
 ## ✨ Key Features
 
-* 🕶️ **Futuristic Holographic Aesthetic**: Custom GLSL shaders with neon glow, Blinn-Phong lighting, Fresnel rim highlights, and dynamic scanning overlays.
+* 🎨 **Solid Opaque Original Colors (Default Mode)**: 3D models render in their **true, vibrant original textures and material colors** with realistic Blinn-Phong directional lighting and zero bloom distortion.
+* 🕶️ **Futuristic Hologram Glow Mode**: Press **`H`** anytime to toggle to the neon cyan holographic aesthetic with Fresnel rim highlights and floating scanlines.
 * 👤 **478-Point Face Mesh & Head Anchor**: Projects the hologram container in front of your head using MediaPipe Face Landmarker. Features cyan face mesh dots and a red nose-anchor tracking indicator.
 * 👐 **Dual-Hand Tracking Skeletons**:
   * **Left Hand (Yellow Skeleton)**: Controls container scaling (Pinch to shrink/expand, Open/Close palm).
   * **Right Hand (Green Skeleton)**: Gesture-controlled model cycling (Fist $\rightarrow$ Open Palm sequence).
-* 🎛️ **3-Axis 90° Interactive Orientation Panel**:
-  * On-screen buttons: `[ X-Rot 90 ]`, `[ Y-Rot 90 ]`, `[ Z-Rot 90 ]`, and `[ Reset 0 deg ]`.
-  * Allows rotating 3D models 90° along Pitch, Yaw, or Roll with a single click.
-  * Keyboard shortcuts: Press `X`, `Y`, `Z` keys.
-* 💾 **Per-Model Isolated Rotation Memory**: Each 3D model remembers its own custom orientation angles independently when cycling between assets.
-* 📷 **Glare-Free Camera Background**: Camera feed is rendered directly to the framebuffer without bloom FBO glare, preserving webcam image quality.
-* 🌈 **HDR Bloom & Particle Systems**: Multi-pass separable Gaussian blur composited on top of the hologram without affecting background pixels.
+* ⌨️ **On-Screen Keyboard Shortcut Panel**:
+  * Clean, high-contrast HUD panel displaying live 3D orientation angles, current render style, and bright yellow keyboard hints (`Press H`, `Press X`, `Press Y`, `Press Z`, `Press 0`).
+* 💾 **Per-Model Isolated Rotation Memory**: Each 3D model maintains its own custom orientation angles independently when cycling between assets.
+* 📷 **Glare-Free Camera Background**: Camera feed is rendered directly to the framebuffer without bloom FBO glare, preserving crystal-clear webcam quality.
+* 🌈 **HDR Bloom & Particle Systems**: Multi-pass separable Gaussian blur composited over holographic mode without affecting background pixels.
 
 ---
 
@@ -49,7 +48,7 @@ The graphics engine is built from scratch with **OpenGL 3.3 Core Profile** featu
 | 🎮 **Graphics Engine** | OpenGL 3.3 Core | Custom GLSL shaders (Vertex, Fragment, Post-processing FBOs). |
 | 🤖 **AI Tracking** | MediaPipe Tasks | 478-point Face Landmarker & Dual-Hand Landmarker tracking. |
 | 📹 **Vision & Video** | OpenCV (cv2) | High-speed multithreaded camera capture and skeleton drawing. |
-| 🧊 **3D Asset Engine** | Trimesh & Pyrr | GLB/GLTF/OBJ loading, unit normalization, and matrix math. |
+| 🧊 **3D Asset Engine** | Trimesh & Pyrr | GLB/GLTF/OBJ loading, texture sampling, unit normalization, and matrix math. |
 | 🖥️ **Windowing & HUD** | GLFW & Pillow | Native window creation, VSync, and procedural font atlas text rendering. |
 
 ---
@@ -77,7 +76,7 @@ Antigravity/
 │   └── state_machine.py        # FSM with per-model orientation memory
 │
 ├── graphics/
-│   ├── window.py               # GLFW Window context, HiDPI scaling & mouse dispatchers
+│   ├── window.py               # GLFW Window context, HiDPI scaling & input dispatchers
 │   ├── shader.py               # Shader compiler & uniform location binder
 │   └── gl_utils.py             # VAO, VBO, EBO, and FBO helper routines
 │
@@ -85,12 +84,12 @@ Antigravity/
 │   ├── scene.py                # Coordinates 3D scene rendering, bloom FBOs, and HUD
 │   ├── background.py           # Renders live webcam background (glare-free)
 │   ├── cube_renderer.py        # Holographic wireframe container renderer
-│   ├── model_renderer.py       # Blinn-Phong & Fresnel 3D mesh renderer
+│   ├── model_renderer.py       # Solid Blinn-Phong & Holographic 3D mesh renderer
 │   ├── particle_renderer.py    # Additive energy particle sprite system
-│   └── hud_renderer.py         # 2D Orthographic HUD & interactive UI button renderer
+│   └── hud_renderer.py         # 2D Orthographic HUD text & backdrop renderer
 │
 ├── models/
-│   └── loader.py               # 3D mesh loader, node hierarchy unpacker & normalizer
+│   └── loader.py               # 3D mesh loader, texture color sampler & normalizer
 │
 ├── effects/
 │   └── bloom.py                # High Dynamic Range (HDR) Bloom post-processing pipeline
@@ -98,9 +97,9 @@ Antigravity/
 └── shaders/                    # GLSL Shaders (330 Core Profile)
     ├── background.*            # Camera texture shaders
     ├── hologram.*              # Wireframe cube container shaders
-    ├── model.*                 # Blinn-Phong model shaders
+    ├── model.*                 # Solid & Holographic model shaders
     ├── particle.*              # Additive particle shaders
-    └── hud.*                   # UI Text & Button quads shaders with opacity control
+    └── hud.*                   # UI Text & Backdrop shaders with opacity control
 ```
 
 ---
@@ -131,17 +130,18 @@ python main.py
 
 ---
 
-## 🎮 Controls & Keyboard Shortcuts
+## 🎮 Keyboard Controls & Shortcuts
 
-| Control | Action | Description |
+| Hotkey | Action | Description |
 | :---: | :--- | :--- |
-| 🖱️ **UI Buttons** | `X-Rot 90` / `Y-Rot 90` / `Z-Rot 90` / `Reset` | Rotate active 3D model 90° along Pitch, Yaw, Roll, or Reset. |
-| ⌨️ **`X`** | Pitch 90° | Rotate model +90° vertically along X-axis. |
-| ⌨️ **`Y`** | Yaw 90° | Rotate model +90° horizontally along Y-axis. |
-| ⌨️ **`Z`** | Roll 90° | Rotate model +90° sideways along Z-axis. |
-| ⌨️ **`D`** | Toggle HUD & Landmarks | Show/hide tracking skeletons, face mesh, and debug HUD overlay. |
+| ⌨️ **`H` / `M`** | Toggle Render Style | Switch between **Solid Original Colors Mode** (default) and **Hologram Blue Glow Mode**. |
+| ⌨️ **`X`** | Pitch 90° | Rotate active 3D model +90° vertically along X-axis. |
+| ⌨️ **`Y`** | Yaw 90° | Rotate active 3D model +90° horizontally along Y-axis. |
+| ⌨️ **`Z`** | Roll 90° | Rotate active 3D model +90° sideways along Z-axis. |
+| ⌨️ **`0`** | Reset Rotation | Reset 3D model manual orientation back to 0°. |
+| ⌨️ **`D`** | Toggle Debug HUD | Show/hide tracking skeletons, face mesh, and debug stats overlay. |
 | ⌨️ **`F11`** | Toggle Fullscreen | Switch between windowed mode and borderless fullscreen. |
-| ⌨️ **`Ctrl + R`** | Hot-Reload Shaders | Reload all GLSL shaders in real-time without restarting. |
+| ⌨️ **`Ctrl + R`** | Hot-Reload Shaders | Reload all GLSL shaders in real-time without restarting the app. |
 | ⌨️ **`S`** | Take Screenshot | Capture current frame buffer and save to `screenshots/`. |
 | ⌨️ **`ESC`** | Quit Application | Safely release webcam threads and GPU resources. |
 
@@ -150,7 +150,7 @@ python main.py
 ## 📦 Adding Custom 3D Models
 
 1. Drop your `.glb` or `.gltf` 3D files into the **`assets/`** folder.
-2. The engine automatically normalizes mesh scales to fit inside the holographic container and extracts original vertex materials and colors.
+2. The engine automatically normalizes mesh scales and bakes texture maps directly into vertex buffers.
 3. Make a **Right Hand Fist $\rightarrow$ Open Palm** sequence to cycle through your models in real time!
 
 ---
