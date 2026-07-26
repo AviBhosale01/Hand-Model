@@ -410,6 +410,25 @@ class SceneRenderer:
 
         self._hud.begin()
 
+        # ── Signature Branding Badge ("Made By Avii") ─────────────────────────
+        author_text = "Made By Avii"
+        author_scale = 0.42
+        cw = self._hud._char_width * author_scale
+        ch = self._hud._char_height * author_scale
+        badge_w = len(author_text) * cw + 24.0
+        badge_h = ch + 16.0
+        badge_x = float(self._width) - badge_w - 18.0
+        badge_y = 14.0
+
+        # Glassmorphic backdrop box with glowing gold border
+        self._hud.render_rect(badge_x, badge_y, badge_w, badge_h, color=(0.0, 0.0, 0.0), opacity=0.65)
+        self._hud.render_rect_outline(badge_x, badge_y, badge_w, badge_h, thickness=2.0, color=(1.0, 0.84, 0.0), opacity=0.95)
+        
+        # Centered vibrant gold text
+        text_x = badge_x + (badge_w - len(author_text) * cw) / 2.0
+        text_y = badge_y + (badge_h - ch) / 2.0
+        self._hud.render_text(author_text, text_x, text_y, scale=author_scale, color=(1.0, 0.84, 0.0))
+
         line_y = 10.0
         line_spacing = 28.0
         text_scale = 0.35

@@ -10,6 +10,8 @@
 
 <p align="center">
   <b>A real-time, Iron Man-style 3D Augmented Reality Hologram & Model Viewer powered by MediaPipe AI and PyOpenGL.</b>
+  <br>
+  <i>Made By Avii</i>
 </p>
 
 </div>
@@ -18,7 +20,7 @@
 
 ## 🌟 Overview
 
-**AR Holographic Viewer** turns your webcam feed into a futuristic, interactive 3D display. Using **MediaPipe Tasks** for real-time 478-point face mesh and dual-hand tracking, the engine anchors 3D models in front of your face and lets you scale, cycle, and re-orient assets using natural hand gestures and keyboard controls.
+**AR Holographic Viewer** turns your webcam feed into a futuristic, interactive 3D display. Using **MediaPipe Tasks** for real-time 478-point face mesh and dual-hand tracking, the engine anchors 3D models in front of your head and lets you scale, cycle, and re-orient assets using natural hand gestures and keyboard controls.
 
 The graphics engine is built from scratch with **OpenGL 3.3 Core Profile** featuring custom GLSL shaders, texture map sampling, HDR Bloom post-processing, particle simulations, and real-time skeleton overlay drawing.
 
@@ -26,6 +28,7 @@ The graphics engine is built from scratch with **OpenGL 3.3 Core Profile** featu
 
 ## ✨ Key Features
 
+* 👑 **Signature Branding**: Features an on-screen glassmorphic **`Made By Avii`** gold badge in the top-right corner.
 * 🎨 **Solid Opaque Original Colors (Default Mode)**: 3D models render in their **true, vibrant original textures and material colors** with realistic Blinn-Phong directional lighting and zero bloom distortion.
 * 🕶️ **Futuristic Hologram Glow Mode**: Press **`H`** anytime to toggle to the neon cyan holographic aesthetic with Fresnel rim highlights and floating scanlines.
 * 👤 **478-Point Face Mesh & Head Anchor**: Projects the hologram container in front of your head using MediaPipe Face Landmarker. Features cyan face mesh dots and a red nose-anchor tracking indicator.
@@ -36,7 +39,41 @@ The graphics engine is built from scratch with **OpenGL 3.3 Core Profile** featu
   * Clean, high-contrast HUD panel displaying live 3D orientation angles, current render style, and bright yellow keyboard hints (`Press H`, `Press X`, `Press Y`, `Press Z`, `Press 0`).
 * 💾 **Per-Model Isolated Rotation Memory**: Each 3D model maintains its own custom orientation angles independently when cycling between assets.
 * 📷 **Glare-Free Camera Background**: Camera feed is rendered directly to the framebuffer without bloom FBO glare, preserving crystal-clear webcam quality.
-* 🌈 **HDR Bloom & Particle Systems**: Multi-pass separable Gaussian blur composited over holographic mode without affecting background pixels.
+
+---
+
+## 👐 Step-by-Step Hand Gesture Guide
+
+The application uses real-time computer vision to recognize natural hand movements without requiring any physical controllers.
+
+### 1️⃣ Right Hand: 3D Model Cycling (Fist $\rightarrow$ Open Palm Sequence)
+
+To cycle to the next 3D model loaded in your `assets/` folder, use your **Right Hand (Green Skeleton)**:
+
+```
+[ Step 1: Make a Fist ]         [ Step 2: Open Palm ]        [ Result ]
+ ✊ Close all 5 fingers   ───>   🖐️ Spread fingers wide  ───>  🔄 Swaps to Next 3D Model!
+```
+
+#### Detailed Steps:
+1. **Raise your Right Hand**: Hold your right hand up where the camera can clearly see it.
+2. **Make a Closed Fist (✊)**: Curl all 5 fingers tightly inward toward your palm.
+   * *Status*: The MediaPipe tracker detects `is_fist = True` and prepares the transition sequence.
+3. **Open your Palm (🖐️)**: Quickly open your hand and extend all 5 fingers outward.
+   * *Status*: The transition from **Fist $\rightarrow$ Open Palm** triggers the model switcher, cycling to the next 3D asset with an elastic scale-in animation!
+4. **Cycle Again**: Simply repeat the **Fist $\rightarrow$ Open Palm** gesture to continuously cycle through all loaded models.
+
+---
+
+### 2️⃣ Left Hand: Hologram Container & Scaling Controls
+
+Use your **Left Hand (Yellow Skeleton)** to summon and resize the 3D hologram:
+
+* **Summon Container (🖐️ Open Palm)**: Raise your left hand with an open palm to expand the 3D model and wireframe container into view.
+* **Dismiss Container (✊ Closed Fist)**: Curl your left hand into a fist to shrink and vanish the container.
+* **Pinch Scaling (👌 Pinch Gesture)**:
+  * **Pinch In (Thumb & Index touching)**: Shrinks the 3D model and container.
+  * **Pinch Out (Thumb & Index apart)**: Expands the 3D model to full size.
 
 ---
 
@@ -124,9 +161,6 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
-
-> [!NOTE]
-> MediaPipe AI models (`hand_landmarker.task` and `face_landmarker.task`) will automatically download to the `assets/` directory on first launch if not present.
 
 ---
 
