@@ -54,8 +54,9 @@ class ARHologramApp:
         self._setup_input_callbacks()
 
     def _setup_input_callbacks(self) -> None:
-        """Binds window callbacks to key events."""
+        """Binds window callbacks to key and mouse events."""
         self.window.add_key_callback(self._on_key)
+        self.window.add_mouse_button_callback(self._on_mouse_button)
 
     def _on_key(self, window_handle, key, scancode, action, mods) -> None:
         """Callback for keyboard events inside GLFW window."""
@@ -80,6 +81,10 @@ class ARHologramApp:
         elif key == glfw.KEY_S:
             self._take_screenshot()
             
+        elif key == glfw.KEY_O:
+            logger.info("Hotkey 'O' pressed: Rotating 3D model 90°...")
+            self.state_machine.rotate_model_manual(delta_y=90.0)
+
         elif key == glfw.KEY_R:
             # Hot reload all shaders
             logger.info("Reloading shaders...")
@@ -91,6 +96,25 @@ class ARHologramApp:
                 logger.info("Shaders reloaded successfully!")
             except Exception as e:
                 logger.error(f"Shader reload failed: {e}", exc_info=True)
+
+    def _on_mouse_button(self, window_handle, button, action, mods) -> None:
+        """Callback for mouse click events inside GLFW window."""
+        if action != glfw.PRESS:
+            return
+
+        fb_x, fb_y = self.window.get_framebuffer_mouse_pos()
+        btn_w, btn_h = 175.0, 44.0
+        btn_x = float(self.window.width) - btn_w - 20.0
+        btn_y = float(self.window.height) - btn_h - 20.0
+
+        if btn_x <= fb_x <= btn_x + btn_w and btn_y <= fb_y <= btn_y + btn_h:
+            if button == glfw.MOUSE_BUTTON_LEFT:
+                if mods & glfw.MOD_SHIFT:
+                    self.state_machine.rotate_model_manual(delta_y=0.0, delta_x=90.0)
+                else:
+                    self.state_machine.rotate_model_manual(delta_y=90.0, delta_x=0.0)
+            elif button == glfw.MOUSE_BUTTON_RIGHT:
+                self.state_machine.rotate_model_manual(delta_y=0.0, delta_x=90.0)
 
     def _take_screenshot(self) -> None:
         """Captures the current frame buffer and saves it to a PNG."""
@@ -217,7 +241,8 @@ class ARHologramApp:
                 frame_rgb=frame_to_render,
                 state=self.state_machine.state,
                 context=self.state_machine.context,
-                timer=self.timer
+                timer=self.timer,
+                mouse_pos=self.window.get_framebuffer_mouse_pos()
             )
             
             # Swap front and back OpenGL rendering buffers

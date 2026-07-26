@@ -46,6 +46,8 @@ class StateContext:
     # Continuous animations
     cube_rotation: float = 0.0
     model_rotation: float = 0.0
+    manual_rotation_y: float = 0.0
+    manual_rotation_x: float = 0.0
     cube_float_offset: float = 0.0
 
 
@@ -60,7 +62,7 @@ class StateMachine:
         
         self._state = AppState.IDLE
         self._context = StateContext()
-        
+
         # Debouncers for stable state triggers
         self._pinch_open_debouncer = Debouncer(
             required_duration_ms=settings.gesture_debounce_ms
@@ -77,6 +79,15 @@ class StateMachine:
         
         # EMA filter factors for smooth tracking
         self._head_smoothing = settings.smoothing_factor
+
+    def rotate_model_manual(self, delta_y: float = 90.0, delta_x: float = 0.0) -> None:
+        """Rotates the active 3D model by 90 degree increments manually."""
+        self._context.manual_rotation_y = (self._context.manual_rotation_y + delta_y) % 360.0
+        self._context.manual_rotation_x = (self._context.manual_rotation_x + delta_x) % 360.0
+        logger.info(
+            "Model rotated by 90°! Current manual offsets: Y=%.0f°, X=%.0f°",
+            self._context.manual_rotation_y, self._context.manual_rotation_x
+        )
 
     @property
     def state(self) -> AppState:

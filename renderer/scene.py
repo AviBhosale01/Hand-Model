@@ -19,7 +19,7 @@ Rendering order per frame:
 
 import logging
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import pyrr
@@ -174,19 +174,13 @@ class SceneRenderer:
 
     def render(
         self,
-        frame_rgb: np.ndarray,
+        frame_rgb: Optional[np.ndarray],
         state: AppState,
         context: StateContext,
         timer: "FrameTimer",
+        mouse_pos: Tuple[float, float] = (0.0, 0.0),
     ) -> None:
-        """Execute the full render pipeline for one frame.
-
-        Args:
-            frame_rgb: Camera frame as ``(H, W, 3)`` uint8 numpy array (RGB).
-            state: Current application state from the FSM.
-            context: Mutable state context with interpolated values.
-            timer: Frame timer providing *dt*, *elapsed*, and *fps*.
-        """
+        """Main render coordinating method. Draws camera, 3D hologram, particles, and HUD."""
         s = self._settings
         w, h = self._width, self._height
         elapsed = timer.elapsed
@@ -207,9 +201,9 @@ class SceneRenderer:
         if state != AppState.IDLE:
             self._render_3d_scene(state, context, elapsed, w, h)
 
-        # ── 5. HUD overlays ───────────────────────────────────────────────
-        if (s.show_fps or self._debug_visible) and self._hud is not None:
-            self._render_hud(state, context, timer)
+        # ── 5. HUD overlays & Interactive UI Buttons ──────────────────────
+        if self._hud is not None:
+            self._render_hud(state, context, timer, mouse_pos)
 
     # ──────────────────────────────────────────────────────────────────────────
 
@@ -310,9 +304,13 @@ class SceneRenderer:
                 pyrr.Vector3([cube_world_pos[0], float_y, cube_world_pos[2]]),
                 dtype=np.float32,
             )
-            model_rotation = pyrr.matrix44.create_from_y_rotation(
-                math.radians(ctx.model_rotation), dtype=np.float32
+            model_rotation_y = pyrr.matrix44.create_from_y_rotation(
+                math.radians(ctx.model_rotation + ctx.manual_rotation_y), dtype=np.float32
             )
+            model_rotation_x = pyrr.matrix44.create_from_x_rotation(
+                math.radians(ctx.manual_rotation_x), dtype=np.float32
+            )
+            model_rotation = pyrr.matrix44.multiply(model_rotation_x, model_rotation_y)
 
             # Scale the model to fit within the cube (slightly smaller)
             model_size = ctx.model_scale * s.cube_base_size * 0.7
@@ -369,8 +367,9 @@ class SceneRenderer:
         state: AppState,
         ctx: StateContext,
         timer: "FrameTimer",
+        mouse_pos: Tuple[float, float] = (0.0, 0.0),
     ) -> None:
-        """Render the HUD overlay (FPS, state, model name)."""
+        """Render the HUD overlay (FPS, state, model name, and interactive buttons)."""
         if self._hud is None:
             return
 
@@ -413,6 +412,24 @@ class SceneRenderer:
             # Frame timing
             dt_text = f"dt: {timer.dt * 1000.0:.1f}ms  frame: {timer.frame_count}"
             self._hud.render_text(dt_text, 10.0, line_y, scale=text_scale, color=(0.5, 0.5, 0.5))
+
+        # ── Bottom-Right Interactive 90° Model Rotation Button ─────────────────
+        btn_w, btn_h = 175.0, 44.0
+        btn_x = float(self._width) - btn_w - 20.0
+        btn_y = float(self._height) - btn_h - 20.0
+
+        mx, my = mouse_pos
+        is_hovered = (btn_x <= mx <= btn_x + btn_w) and (btn_y <= my <= btn_y + btn_h)
+
+        angle_y = int(ctx.manual_rotation_y % 360)
+        btn_text = f"ROTATE 90 deg ({angle_y} deg)"
+        self._hud.render_button(btn_x, btn_y, btn_w, btn_h, text=btn_text, is_hovered=is_hovered)
+
+        # Small hint label above button
+        hint_text = "Click: Turn 90 deg | R-Click: Pitch 90 deg"
+        hint_w = len(hint_text) * (self._hud._char_width * 0.24)
+        hint_x = float(self._width) - hint_w - 20.0
+        self._hud.render_text(hint_text, hint_x, btn_y - 18.0, scale=0.24, color=(0.0, 0.75, 0.95))
 
         self._hud.end()
 

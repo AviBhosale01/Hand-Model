@@ -6,7 +6,7 @@ input callbacks, fullscreen toggling, and clean shutdown.
 
 import logging
 import platform
-from typing import Any, Callable, List, Optional
+from typing import Any, Callable, List, Optional, Tuple
 
 import glfw
 from OpenGL.GL import glViewport
@@ -45,6 +45,10 @@ class Window:
         self._height: int = settings.window_height
         self._title: str = settings.window_title
         self._key_callbacks: List[Callable] = []
+        self._mouse_button_callbacks: List[Callable] = []
+        self._cursor_pos_callbacks: List[Callable] = []
+        self._mouse_x: float = 0.0
+        self._mouse_y: float = 0.0
         self._is_fullscreen: bool = False
         self._handle: Optional[Any] = None
 
@@ -112,6 +116,8 @@ class Window:
         # Register GLFW callbacks
         glfw.set_framebuffer_size_callback(self._handle, self._framebuffer_size_callback)
         glfw.set_key_callback(self._handle, self._key_callback_dispatcher)
+        glfw.set_mouse_button_callback(self._handle, self._mouse_button_callback_dispatcher)
+        glfw.set_cursor_pos_callback(self._handle, self._cursor_pos_callback_dispatcher)
 
         logger.info(
             "Window created: %dx%d, fullscreen=%s",
@@ -152,6 +158,28 @@ class Window:
                 callback(window, key, scancode, action, mods)
             except Exception:
                 logger.exception("Error in key callback %r", callback)
+
+    def _mouse_button_callback_dispatcher(
+        self, window: Any, button: int, action: int, mods: int
+    ) -> None:
+        """Dispatch mouse button events to all registered mouse button callbacks."""
+        for callback in self._mouse_button_callbacks:
+            try:
+                callback(window, button, action, mods)
+            except Exception:
+                logger.exception("Error in mouse button callback %r", callback)
+
+    def _cursor_pos_callback_dispatcher(
+        self, window: Any, xpos: float, ypos: float
+    ) -> None:
+        """Dispatch cursor position events to all registered cursor callbacks."""
+        self._mouse_x = xpos
+        self._mouse_y = ypos
+        for callback in self._cursor_pos_callbacks:
+            try:
+                callback(window, xpos, ypos)
+            except Exception:
+                logger.exception("Error in cursor pos callback %r", callback)
 
     def should_close(self) -> bool:
         """Check whether the window has been requested to close.
@@ -253,6 +281,27 @@ class Window:
         if callback not in self._key_callbacks:
             self._key_callbacks.append(callback)
             logger.debug("Added key callback: %r", callback)
+
+    def add_mouse_button_callback(self, callback: Callable) -> None:
+        """Register a mouse button event callback."""
+        if callback not in self._mouse_button_callbacks:
+            self._mouse_button_callbacks.append(callback)
+            logger.debug("Added mouse button callback: %r", callback)
+
+    def add_cursor_pos_callback(self, callback: Callable) -> None:
+        """Register a cursor position callback."""
+        if callback not in self._cursor_pos_callbacks:
+            self._cursor_pos_callbacks.append(callback)
+            logger.debug("Added cursor pos callback: %r", callback)
+
+    def get_framebuffer_mouse_pos(self) -> Tuple[float, float]:
+        """Returns mouse position scaled to current framebuffer resolution."""
+        if self._handle is None:
+            return 0.0, 0.0
+        win_w, win_h = glfw.get_window_size(self._handle)
+        scale_x = self._width / max(1, win_w)
+        scale_y = self._height / max(1, win_h)
+        return self._mouse_x * scale_x, self._mouse_y * scale_y
 
     @property
     def width(self) -> int:
