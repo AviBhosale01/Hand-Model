@@ -2,17 +2,21 @@
 
 <div align="center">
 
-![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python Version](https://img.shields.io/badge/Python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![OpenGL](https://img.shields.io/badge/OpenGL-3.3%20Core-5586A4?style=for-the-badge&logo=opengl&logoColor=white)
-![MediaPipe](https://img.shields.io/badge/MediaPipe-Tasks-0097A7?style=for-the-badge&logo=google&logoColor=white)
-![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)
+![MediaPipe](https://img.shields.io/badge/MediaPipe-Tasks%20AI-0097A7?style=for-the-badge&logo=google&logoColor=white)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x%20Vision-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)
+![Build](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge&logo=githubactions&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-F5A623?style=for-the-badge&logo=open-source-initiative&logoColor=white)
 
-<p align="center">
-  <b>A real-time, Iron Man-style 3D Augmented Reality Hologram & Model Viewer powered by MediaPipe AI and PyOpenGL.</b>
-  <br>
-  <i>Made By Avii</i>
-</p>
+<br/>
+
+### 🔮 *Next-Gen Iron Man-style Spatial 3D Augmented Reality Interface*
+**Crafted with ❤️ by Avii**
+
+<br/>
+
+[✨ Features](#-key-features) • [👐 Gesture Guide](#-step-by-step-hand-gesture-guide) • [🛠️ Tech Stack](#️-technology-stack) • [⚡ Installation](#-installation--quick-start) • [🎮 Keyboard Controls](#-keyboard-controls--shortcuts) • [📦 Custom Models](#-adding-custom-3d-models)
 
 </div>
 
@@ -20,84 +24,97 @@
 
 ## 🌟 Overview
 
-**AR Holographic Viewer** turns your webcam feed into a futuristic, interactive 3D display. Using **MediaPipe Tasks** for real-time 478-point face mesh and dual-hand tracking, the engine anchors 3D models in front of your head and lets you scale, cycle, and re-orient assets using natural hand gestures and keyboard controls.
+**AR Holographic Viewer** turns your standard webcam feed into a futuristic, interactive spatial computing interface. Powered by **MediaPipe Tasks AI** for real-time 478-point face mesh tracking and dual-hand skeletal joint detection, the engine anchors 3D holographic containers directly in front of your head.
 
-The graphics engine is built from scratch with **OpenGL 3.3 Core Profile** featuring custom GLSL shaders, texture map sampling, HDR Bloom post-processing, particle simulations, and real-time skeleton overlay drawing.
+The graphics engine is engineered from scratch on **OpenGL 3.3 Core Profile** with custom multi-pass GLSL shaders, texture coordinate sampling, separable Gaussian HDR Bloom post-processing, orbital particle simulations, and real-time biometric HUD overlays.
 
 ---
 
 ## ✨ Key Features
 
-* 👑 **Signature Branding**: Features an on-screen glassmorphic **`Made By Avii`** gold badge in the top-right corner.
-* 🎨 **Solid Opaque Original Colors (Default Mode)**: 3D models render in their **true, vibrant original textures and material colors** with realistic Blinn-Phong directional lighting and zero bloom distortion.
-* 🕶️ **Futuristic Hologram Glow Mode**: Press **`H`** anytime to toggle to the neon cyan holographic aesthetic with Fresnel rim highlights and floating scanlines.
-* 👤 **478-Point Face Mesh & Head Anchor**: Projects the hologram container in front of your head using MediaPipe Face Landmarker. Features cyan face mesh dots and a red nose-anchor tracking indicator.
-* 👐 **Dual-Hand Tracking Skeletons**:
-  * **Left Hand (Yellow Skeleton)**: Controls container scaling (Pinch to shrink/expand, Open/Close palm).
-  * **Right Hand (Green Skeleton)**: Gesture-controlled model cycling (Fist $\rightarrow$ Open Palm sequence).
-* ⌨️ **On-Screen Keyboard Shortcut Panel**:
-  * Clean, high-contrast HUD panel displaying live 3D orientation angles, current render style, and bright yellow keyboard hints (`Press H`, `Press X`, `Press Y`, `Press Z`, `Press 0`).
-* 💾 **Per-Model Isolated Rotation Memory**: Each 3D model maintains its own custom orientation angles independently when cycling between assets.
-* 📷 **Glare-Free Camera Background**: Camera feed is rendered directly to the framebuffer without bloom FBO glare, preserving crystal-clear webcam quality.
+| Feature | Description | Highlight |
+| :--- | :--- | :---: |
+| 👑 **Signature Branding** | On-screen glassmorphic **`Made By Avii`** gold emblem in top-right HUD. | `Branding` |
+| 🎨 **Solid Opaque Mode (Default)** | 3D models render with **true original textures & vibrant colors** with Blinn-Phong lighting. | `True Color` |
+| 🕶️ **Hologram Neon Glow Mode** | Toggleable sci-fi cyan glow with Fresnel boundary edge-lighting & scanline passes. | `Futuristic` |
+| 👤 **478-Point Face Mesh Anchor** | Head-anchored 3D viewport using MediaPipe Face Landmarker with nose-tip tracking. | `Spatial 3D` |
+| 👐 **Dual-Hand Skeleton AI** | Left Hand (Yellow skeleton) for scaling & summoning; Right Hand (Green) for model cycling. | `Zero-Touch` |
+| ⌨️ **High-Contrast Control HUD** | Live 3D orientation readout and yellow shortcut key hints (`[H]`, `[X]`, `[Y]`, `[Z]`, `[0]`). | `Telemetry` |
+| 💾 **Per-Model Rotation Memory** | Each model independently remembers its custom pitch, yaw, and roll orientations. | `Persistence` |
+| 📷 **Glare-Free Camera Pipeline** | Direct framebuffer camera feed with zero bloom glare for pristine video clarity. | `60 FPS` |
 
 ---
 
 ## 👐 Step-by-Step Hand Gesture Guide
 
-The application uses real-time computer vision to recognize natural hand movements without requiring any physical controllers.
+Control your 3D assets entirely through natural hand gestures recognized in real-time by MediaPipe AI.
 
 ### 1️⃣ Right Hand: 3D Model Cycling (Fist $\rightarrow$ Open Palm Sequence)
 
-To cycle to the next 3D model loaded in your `assets/` folder, use your **Right Hand (Green Skeleton)**:
+Use your **Right Hand (Green Skeleton)** to cycle to the next 3D asset in your `assets/` directory:
 
 ```
-[ Step 1: Make a Fist ]         [ Step 2: Open Palm ]        [ Result ]
- ✊ Close all 5 fingers   ───>   🖐️ Spread fingers wide  ───>  🔄 Swaps to Next 3D Model!
+┌─────────────────────────┐          ┌─────────────────────────┐          ┌───────────────────────────┐
+│   Step 1: Make a Fist   │          │   Step 2: Open Palm     │          │         Result            │
+│  ✊ Close all 5 fingers │   ───>   │  🖐️ Spread fingers wide │   ───>   │ 🔄 Cycles to Next 3D Mesh │
+└─────────────────────────┘          └─────────────────────────┘          └───────────────────────────┘
 ```
 
-#### Detailed Steps:
-1. **Raise your Right Hand**: Hold your right hand up where the camera can clearly see it.
-2. **Make a Closed Fist (✊)**: Curl all 5 fingers tightly inward toward your palm.
-   * *Status*: The MediaPipe tracker detects `is_fist = True` and prepares the transition sequence.
-3. **Open your Palm (🖐️)**: Quickly open your hand and extend all 5 fingers outward.
-   * *Status*: The transition from **Fist $\rightarrow$ Open Palm** triggers the model switcher, cycling to the next 3D asset with an elastic scale-in animation!
-4. **Cycle Again**: Simply repeat the **Fist $\rightarrow$ Open Palm** gesture to continuously cycle through all loaded models.
+#### Detailed Breakdown:
+1. **Raise your Right Hand**: Hold your right hand within the webcam's field of view.
+2. **Form a Closed Fist (✊)**: Curl all 5 fingers tightly inward. The tracker logs `is_fist = True`.
+3. **Open your Palm (🖐️)**: Snap your hand open with fingers extended. The state machine transitions from **Fist $\rightarrow$ Open Palm** and cycles to the next model with an elastic entrance animation!
+4. **Repeat to Cycle**: Simply repeat the sequence anytime to browse through all models in your catalog.
 
 ---
 
 ### 2️⃣ Left Hand: Hologram Container & Scaling Controls
 
-Use your **Left Hand (Yellow Skeleton)** to summon and resize the 3D hologram:
+Use your **Left Hand (Yellow Skeleton)** to summon, dismiss, and dynamically resize the 3D hologram:
 
-* **Summon Container (🖐️ Open Palm)**: Raise your left hand with an open palm to expand the 3D model and wireframe container into view.
-* **Dismiss Container (✊ Closed Fist)**: Curl your left hand into a fist to shrink and vanish the container.
-* **Pinch Scaling (👌 Pinch Gesture)**:
-  * **Pinch In (Thumb & Index touching)**: Shrinks the 3D model and container.
-  * **Pinch Out (Thumb & Index apart)**: Expands the 3D model to full size.
+* 🖐️ **Summon Hologram (Open Palm)**: Raise an open left palm to smoothly expand the 3D model and wireframe cube into view.
+* ✊ **Dismiss Hologram (Closed Fist)**: Close your left hand into a fist to shrink and dismiss the container.
+* 👌 **Pinch Scaling (Thumb & Index)**:
+  * **Pinch Close (Fingers Touching)**: Smoothly scales down the holographic container.
+  * **Pinch Open (Fingers Apart)**: Expands the container and 3D asset to full scale.
 
 ---
 
 ## 🛠️ Technology Stack
 
-| Component | Technology | Description |
+<div align="center">
+
+```
+ ┌──────────────────────────────────────────────────────────────────────────────────┐
+ │                               APPLICATION STACK                                  │
+ ├───────────────────┬───────────────────┬───────────────────┬──────────────────────┤
+ │   ⚡ Python 3.13  │   🎮 OpenGL 3.3   │  🤖 MediaPipe AI  │   📹 OpenCV 4.x      │
+ │   Core Runtime    │   GPU Pipeline    │   Vision Models   │   Video Capture      │
+ ├───────────────────┼───────────────────┼───────────────────┼──────────────────────┤
+ │   🧊 Trimesh GLTF │   📐 Pyrr Math    │   🖥️ GLFW 3.4     │   🎨 Custom GLSL     │
+ │   Asset Parser    │   Matrix Engine   │   Window & VSync  │   Shaders & Bloom    │
+ └───────────────────┴───────────────────┴───────────────────┴──────────────────────┘
+```
+
+</div>
+
+| Layer | Technologies | Role & Architecture |
 | :--- | :--- | :--- |
-| 🐍 **Core Language** | Python 3.8 – 3.13 | Multithreaded architecture & application coordination. |
-| 🎮 **Graphics Engine** | OpenGL 3.3 Core | Custom GLSL shaders (Vertex, Fragment, Post-processing FBOs). |
-| 🤖 **AI Tracking** | MediaPipe Tasks | 478-point Face Landmarker & Dual-Hand Landmarker tracking. |
-| 📹 **Vision & Video** | OpenCV (cv2) | High-speed multithreaded camera capture and skeleton drawing. |
-| 🧊 **3D Asset Engine** | Trimesh & Pyrr | GLB/GLTF/OBJ loading, texture sampling, unit normalization, and matrix math. |
-| 🖥️ **Windowing & HUD** | GLFW & Pillow | Native window creation, VSync, and procedural font atlas text rendering. |
+| 🧠 **AI & Computer Vision** | MediaPipe Tasks, OpenCV, NumPy | Real-time 478-pt Face Mesh, 21-joint Hand Landmarking, One-Euro jitter reduction. |
+| 🎨 **Rendering Engine** | PyOpenGL, GLSL 330 Core, GLFW | Multi-pass HDR Bloom FBOs, Blinn-Phong vertex lighting, procedural HUD atlas. |
+| 🧊 **3D Geometry & Math** | Trimesh, Pyrr, Pillow | GLB/GLTF texture map sampling, vertex normalization, Euler & Quaternion transforms. |
+| ⚙️ **Interaction Architecture** | Python State Machines, Debouncers | Robust FSM with per-model orientation memory and gesture cooldown filters. |
 
 ---
 
-## 📁 Project Architecture
+## 📁 System Architecture
 
 ```
 Antigravity/
-├── main.py                     # Master Coordinator & Application Loop
-├── config.yaml                 # System settings (thresholds, speeds, debug options)
-├── requirements.txt            # Python package dependencies
-├── README.md                   # Project documentation
+├── main.py                     # Master Application Coordinator & Main Loop
+├── config.yaml                 # System configurations (thresholds, speeds, colors)
+├── requirements.txt            # System dependencies
+├── README.md                   # Documentation & Gesture Guide
 │
 ├── camera/
 │   └── capture.py              # Multithreaded OpenCV camera frame grabber
@@ -108,21 +125,21 @@ Antigravity/
 │   └── draw_utils.py           # Real-time skeleton & face mesh overlay renderer
 │
 ├── gesture/
-│   ├── detector.py             # Pinch, fist, and open-palm gesture detection algorithms
-│   ├── debounce.py             # Time-based debouncers preventing false triggers
-│   └── state_machine.py        # FSM with per-model orientation memory
+│   ├── detector.py             # Pinch, fist, and open-palm detection algorithms
+│   ├── debounce.py             # Time-based debounce filters for stable triggers
+│   └── state_machine.py        # FSM with per-model isolated orientation memory
 │
 ├── graphics/
-│   ├── window.py               # GLFW Window context, HiDPI scaling & input dispatchers
+│   ├── window.py               # GLFW Window context, HiDPI scaling & mouse dispatchers
 │   ├── shader.py               # Shader compiler & uniform location binder
-│   └── gl_utils.py             # VAO, VBO, EBO, and FBO helper routines
+│   └── gl_utils.py             # VAO, VBO, EBO, and FBO allocation helpers
 │
 ├── renderer/
-│   ├── scene.py                # Coordinates 3D scene rendering, bloom FBOs, and HUD
+│   ├── scene.py                # Coordinates 3D rendering, bloom FBOs, and HUD
 │   ├── background.py           # Renders live webcam background (glare-free)
 │   ├── cube_renderer.py        # Holographic wireframe container renderer
 │   ├── model_renderer.py       # Solid Blinn-Phong & Holographic 3D mesh renderer
-│   ├── particle_renderer.py    # Additive energy particle sprite system
+│   ├── particle_renderer.py    # Additive glowing point-sprite particle system
 │   └── hud_renderer.py         # 2D Orthographic HUD text & backdrop renderer
 │
 ├── models/
@@ -155,40 +172,47 @@ pip install -r requirements.txt
 ```
 
 > [!TIP]
-> Compatible with **Python 3.8 up to Python 3.13** on Windows, macOS, and Linux.
+> Fully compatible with **Python 3.8 through 3.13** across Windows, macOS, and Linux.
 
 ### 3️⃣ Launch the Application
 ```bash
 python main.py
 ```
 
+> [!NOTE]
+> Pre-trained MediaPipe AI models (`hand_landmarker.task` and `face_landmarker.task`) will automatically download to the `assets/` directory on first launch if not present.
+
 ---
 
 ## 🎮 Keyboard Controls & Shortcuts
 
-| Hotkey | Action | Description |
+| Key | Action | Functionality |
 | :---: | :--- | :--- |
-| ⌨️ **`H` / `M`** | Toggle Render Style | Switch between **Solid Original Colors Mode** (default) and **Hologram Blue Glow Mode**. |
-| ⌨️ **`X`** | Pitch 90° | Rotate active 3D model +90° vertically along X-axis. |
-| ⌨️ **`Y`** | Yaw 90° | Rotate active 3D model +90° horizontally along Y-axis. |
-| ⌨️ **`Z`** | Roll 90° | Rotate active 3D model +90° sideways along Z-axis. |
-| ⌨️ **`0`** | Reset Rotation | Reset 3D model manual orientation back to 0°. |
-| ⌨️ **`D`** | Toggle Debug HUD | Show/hide tracking skeletons, face mesh, and debug stats overlay. |
-| ⌨️ **`F11`** | Toggle Fullscreen | Switch between windowed mode and borderless fullscreen. |
-| ⌨️ **`Ctrl + R`** | Hot-Reload Shaders | Reload all GLSL shaders in real-time without restarting the app. |
-| ⌨️ **`S`** | Take Screenshot | Capture current frame buffer and save to `screenshots/`. |
-| ⌨️ **`ESC`** | Quit Application | Safely release webcam threads and GPU resources. |
+| ⌨️ **`H` / `M`** | **Toggle Render Style** | Switch between **Solid Original Colors Mode** (default) and **Hologram Blue Glow Mode**. |
+| ⌨️ **`X`** | **Pitch 90°** | Rotate active 3D model +90° vertically along the X-axis. |
+| ⌨️ **`Y`** | **Yaw 90°** | Rotate active 3D model +90° horizontally along the Y-axis. |
+| ⌨️ **`Z`** | **Roll 90°** | Rotate active 3D model +90° sideways along the Z-axis. |
+| ⌨️ **`0`** | **Reset Rotation** | Reset active 3D model orientation angles back to 0°. |
+| ⌨️ **`D`** | **Toggle Debug HUD** | Show/hide tracking skeletons, face mesh, and telemetry overlay. |
+| ⌨️ **`F11`** | **Toggle Fullscreen** | Switch between windowed mode and borderless fullscreen. |
+| ⌨️ **`Ctrl + R`** | **Hot-Reload Shaders** | Live reload all GLSL shaders from disk without restarting. |
+| ⌨️ **`S`** | **Take Screenshot** | Capture the active framebuffer and save directly to `screenshots/`. |
+| ⌨️ **`ESC`** | **Quit Application** | Safely release webcam threads and clean up GPU memory buffers. |
 
 ---
 
 ## 📦 Adding Custom 3D Models
 
-1. Drop your `.glb` or `.gltf` 3D files into the **`assets/`** folder.
-2. The engine automatically normalizes mesh scales and bakes texture maps directly into vertex buffers.
-3. Make a **Right Hand Fist $\rightarrow$ Open Palm** sequence to cycle through your models in real time!
+1. Drop your favorite **`.glb`**, **`.gltf`**, or **`.obj`** 3D model files into the **`assets/`** directory.
+2. The engine automatically normalizes mesh bounding boxes and samples texture maps directly into vertex buffers.
+3. Make a **Right Hand Fist $\rightarrow$ Open Palm** sequence to cycle to your newly added 3D models in real time!
 
 ---
 
 ## 📄 License
 
 Distributed under the **MIT License**. See `LICENSE` for details.
+
+<div align="center">
+  <sub>Built with passion for Augmented Reality & Computer Vision by <b>Avii</b>.</sub>
+</div>
