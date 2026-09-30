@@ -223,3 +223,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- target: 60fps-realtime-rendering -->
 
+<!-- model-support: glb-gltf-obj-ply -->
+
