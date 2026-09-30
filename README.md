@@ -227,3 +227,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- tracking: 478-point-facemesh -->
 
+<!-- dual-hand: 21-joints-per-hand -->
+
