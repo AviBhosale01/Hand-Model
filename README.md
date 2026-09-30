@@ -219,3 +219,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- framework: mediapipe-tasks-vision -->
 
+<!-- graphics: opengl-3.3-core -->
+
