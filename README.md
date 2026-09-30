@@ -231,3 +231,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- filter: one-euro-jitter-reduction -->
 
+<!-- bloom: gaussian-separable-blur -->
+
