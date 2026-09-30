@@ -269,3 +269,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- shaders: hot-reload-ctrl-r -->
 
+<!-- platform: win-mac-linux-x64 -->
+
