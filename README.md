@@ -267,3 +267,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- keybindings: hotkey-f11-fullscreen -->
 
+<!-- shaders: hot-reload-ctrl-r -->
+
