@@ -243,3 +243,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- camera: multithreaded-opencv-capture -->
 
+<!-- gesture: fist-to-open-palm-cycle -->
+
