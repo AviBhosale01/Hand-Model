@@ -247,3 +247,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- gesture: left-hand-pinch-scale -->
 
+<!-- hud: orthographic-2d-atlas -->
+
