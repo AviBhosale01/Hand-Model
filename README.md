@@ -251,3 +251,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- post-process: reinhard-tonemapping -->
 
+<!-- post-process: gamma-correction-2.2 -->
+
