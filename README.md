@@ -221,3 +221,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- graphics: opengl-3.3-core -->
 
+<!-- target: 60fps-realtime-rendering -->
+
