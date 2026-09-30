@@ -239,3 +239,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- orientation: 3-axis-euler-rotation -->
 
+<!-- memory: per-model-state-persistence -->
+
