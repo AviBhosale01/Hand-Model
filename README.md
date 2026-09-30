@@ -265,3 +265,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- keybindings: hotkey-s-screenshot -->
 
+<!-- keybindings: hotkey-f11-fullscreen -->
+
