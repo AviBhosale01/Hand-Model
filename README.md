@@ -249,3 +249,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- hud: orthographic-2d-atlas -->
 
+<!-- post-process: reinhard-tonemapping -->
+
