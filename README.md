@@ -235,3 +235,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- shaders: glsl-330-core -->
 
+<!-- style-mode: solid-and-hologram -->
+
