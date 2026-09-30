@@ -241,3 +241,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- memory: per-model-state-persistence -->
 
+<!-- camera: multithreaded-opencv-capture -->
+
