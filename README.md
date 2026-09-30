@@ -233,3 +233,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- bloom: gaussian-separable-blur -->
 
+<!-- shaders: glsl-330-core -->
+
