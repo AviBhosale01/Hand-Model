@@ -245,3 +245,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- gesture: fist-to-open-palm-cycle -->
 
+<!-- gesture: left-hand-pinch-scale -->
+
