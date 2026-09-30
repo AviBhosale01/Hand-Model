@@ -263,3 +263,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- keybindings: hotkey-d-toggle-hud -->
 
+<!-- keybindings: hotkey-s-screenshot -->
+
