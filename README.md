@@ -215,4 +215,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <div align="center">
   <sub>Built with passion for Augmented Reality & Computer Vision by <b>Avii</b>.</sub>
-</div>
+</div><!-- build: v2.4.0-ar-engine -->
+
