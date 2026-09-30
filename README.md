@@ -255,3 +255,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- assets: auto-centering-and-unit-box -->
 
+<!-- keybindings: hotkey-h-toggle-style -->
+
