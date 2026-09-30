@@ -253,3 +253,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- post-process: gamma-correction-2.2 -->
 
+<!-- assets: auto-centering-and-unit-box -->
+
