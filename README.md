@@ -217,3 +217,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
   <sub>Built with passion for Augmented Reality & Computer Vision by <b>Avii</b>.</sub>
 </div><!-- build: v2.4.0-ar-engine -->
 
+<!-- framework: mediapipe-tasks-vision -->
+
