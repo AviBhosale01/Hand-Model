@@ -259,3 +259,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- keybindings: hotkey-xyz-90deg-rot -->
 
+<!-- keybindings: hotkey-0-reset-angles -->
+
