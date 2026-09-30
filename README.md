@@ -229,3 +229,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- dual-hand: 21-joints-per-hand -->
 
+<!-- filter: one-euro-jitter-reduction -->
+
