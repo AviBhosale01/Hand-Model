@@ -271,3 +271,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- platform: win-mac-linux-x64 -->
 
+<!-- license: mit-open-source -->
+
