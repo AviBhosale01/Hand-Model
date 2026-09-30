@@ -261,3 +261,5 @@ Distributed under the **MIT License**. See `LICENSE` for details.
 
 <!-- keybindings: hotkey-0-reset-angles -->
 
+<!-- keybindings: hotkey-d-toggle-hud -->
+
